@@ -1,9 +1,8 @@
 extern crate pom;
 use pom::parser::*;
-use pom::Parser;
 use std::str;
 
-pub fn integer() -> Parser<u8, i64> {
+pub fn integer<'a>() -> Parser<'a, u8, i64> {
   let sign = sym(b'-').opt();
   let number = one_of(b"1234567890").repeat(1..);
 

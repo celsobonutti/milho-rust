@@ -1,5 +1,8 @@
 [workspace]
 
 members = [
+  "canjica",
+  "fuba",
   "pipoquinha"
 ]
+

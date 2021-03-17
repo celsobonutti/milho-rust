@@ -1,8 +1,7 @@
 extern crate pom;
 use pom::parser::*;
-use pom::Parser;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum BuiltIn {
   Add,
   Sub,
@@ -10,7 +9,7 @@ pub enum BuiltIn {
   Div,
 }
 
-pub fn integer_built_ins() -> Parser<u8, BuiltIn> {
+pub fn integer_built_ins<'a>() -> Parser<'a, u8, BuiltIn> {
   let built_ins = one_of(b"+-*/").repeat(1);
 
   built_ins.collect().map(|c| {
