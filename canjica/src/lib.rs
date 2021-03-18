@@ -1,6 +1,6 @@
 use pipoquinha::{
   Atom::{self, *},
-  BuiltIn,
+  Arithmetic,
 };
 
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
@@ -32,13 +32,13 @@ pub fn eval(atom: &Atom) -> Result<Atom, EvalError> {
   match atom {
     Int(value) => Ok(Int(*value)),
     Expr(expr) => match expr.function {
-      BuiltIn::Add => expr.values.iter().fold(Ok(Int(0)), |acc, val| {
+      Arithmetic::Add => expr.values.iter().fold(Ok(Int(0)), |acc, val| {
         acc.and_then(do_op(&eval(val), |x, y| x + y))
       }),
-      BuiltIn::Mul => expr.values.iter().fold(Ok(Int(1)), |acc, val| {
+      Arithmetic::Mul => expr.values.iter().fold(Ok(Int(1)), |acc, val| {
         acc.and_then(do_op(&eval(val), |x, y| x * y))
       }),
-      BuiltIn::Sub => expr
+      Arithmetic::Sub => expr
         .values
         .iter()
         .fold(Err(EvalError::NotEnoughArguments), |acc, val| match acc {
@@ -46,7 +46,7 @@ pub fn eval(atom: &Atom) -> Result<Atom, EvalError> {
           Err(EvalError::NotEnoughArguments) => eval(val),
           err @ Err(_) => err,
         }),
-      BuiltIn::Div => expr
+      Arithmetic::Div => expr
         .values
         .iter()
         .fold(Err(EvalError::NotEnoughArguments), |acc, val| match acc {
