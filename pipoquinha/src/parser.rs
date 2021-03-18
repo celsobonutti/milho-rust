@@ -1,8 +1,8 @@
 extern crate pom;
-mod function;
+mod arithmetic;
 mod integer;
 
-pub use function::*;
+pub use arithmetic::*;
 pub use integer::*;
 use pom::parser::*;
 use std::ops::Add;
@@ -26,7 +26,7 @@ impl Add for Atom {
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Expression {
-  pub function: BuiltIn,
+  pub function: Arithmetic,
   pub values: Vec<Atom>,
 }
 
@@ -40,7 +40,7 @@ fn space<'a>() -> Parser<'a, u8, ()> {
 
 pub fn expression<'a>() -> Parser<'a, u8, Expression> {
   let spaced_atom = space() * atom();
-  let expression = (sym(b'(') + space().opt()) * integer_built_ins() + spaced_atom.repeat(1..)
+  let expression = (sym(b'(') + space().opt()) * arithmetic_ops() + spaced_atom.repeat(1..)
     - space().opt()
     - sym(b')');
 
@@ -60,7 +60,7 @@ fn parse_sum_expression() {
   assert_eq!(
     output,
     Ok(Expression {
-      function: BuiltIn::Add,
+      function: Arithmetic::Add,
       values: vec![Int(3), Int(3), Int(4)]
     })
   );
@@ -76,7 +76,7 @@ fn parse_sum_within_sum() {
 
   assert_eq!(
     Ok(Expression {
-      function: BuiltIn::Add,
+      function: Arithmetic::Add,
       values: vec![Int(3), Expr(internal_sum)]
     }),
     output
