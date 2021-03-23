@@ -1,16 +1,27 @@
 extern crate pom;
 mod arithmetic;
+mod boolean;
 mod integer;
+mod comparison;
 
 pub use arithmetic::*;
+pub use comparison::*;
+pub use boolean::*;
 pub use integer::*;
 use pom::parser::*;
 use std::ops::Add;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
+pub enum Function {
+  Ar(Arithmetic),
+  Cmp(Comparison),
+}
+
+#[derive(Debug, Eq, PartialEq, Clone )]
 pub enum Atom {
   Expr(Expression),
   Int(i64),
+  Bool(Boolean),
 }
 
 impl Add for Atom {
@@ -26,12 +37,18 @@ impl Add for Atom {
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Expression {
-  pub function: Arithmetic,
+  pub function: Function,
   pub values: Vec<Atom>,
 }
 
+pub fn function<'a>() -> Parser<'a, u8, Function> {
+  comparison_functions().map(|c| Function::Cmp(c)) | arithmetic_ops().map(|a| Function::Ar(a))
+}
+
 pub fn atom<'a>() -> Parser<'a, u8, Atom> {
-  integer().map(|i| Atom::Int(i)) | call(expression).map(|expr| Atom::Expr(expr))
+  integer().map(|i| Atom::Int(i))
+    | call(expression).map(|expr| Atom::Expr(expr))
+    | boolean().map(|b| Atom::Bool(b))
 }
 
 fn space<'a>() -> Parser<'a, u8, ()> {
@@ -40,7 +57,7 @@ fn space<'a>() -> Parser<'a, u8, ()> {
 
 pub fn expression<'a>() -> Parser<'a, u8, Expression> {
   let spaced_atom = space() * atom();
-  let expression = (sym(b'(') + space().opt()) * arithmetic_ops() + spaced_atom.repeat(1..)
+  let expression = (sym(b'(') + space().opt()) * function() + spaced_atom.repeat(1..)
     - space().opt()
     - sym(b')');
 
@@ -60,7 +77,7 @@ fn parse_sum_expression() {
   assert_eq!(
     output,
     Ok(Expression {
-      function: Arithmetic::Add,
+      function: Function::Ar(Arithmetic::Add),
       values: vec![Int(3), Int(3), Int(4)]
     })
   );
@@ -76,7 +93,7 @@ fn parse_sum_within_sum() {
 
   assert_eq!(
     Ok(Expression {
-      function: Arithmetic::Add,
+      function: Function::Ar(Arithmetic::Add),
       values: vec![Int(3), Expr(internal_sum)]
     }),
     output

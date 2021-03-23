@@ -1,6 +1,9 @@
 use pipoquinha::{
+  negate, Arithmetic,
   Atom::{self, *},
-  Arithmetic,
+  Boolean::{self, *},
+  Comparison, Expression,
+  Function::*,
 };
 
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
@@ -26,39 +29,71 @@ where
   })
 }
 
+pub fn cmp_eql(expr: &Expression) -> Result<pipoquinha::Boolean, EvalError> {
+  if let Some(base) = expr.values.first() {
+    let base_value = eval(base);
+
+    if let Ok(v1) = base_value {
+      for current in expr.values.clone() {
+        let current_value = eval(&current);
+        if let Ok(v2) = current_value {
+          if v1 != v2 {
+            return Ok(False);
+          }
+        } else {
+          return current_value.map(|_| False);
+        }
+      }
+    } else {
+      return base_value.map(|_| False);
+    }
+  } else {
+    return Err(EvalError::NotEnoughArguments);
+  }
+
+  Ok(True)
+}
+
 const EXPECING_NUMBER: EvalError = EvalError::TypeError("Expecting number");
 
 pub fn eval(atom: &Atom) -> Result<Atom, EvalError> {
   match atom {
-    Int(value) => Ok(Int(*value)),
     Expr(expr) => match expr.function {
-      Arithmetic::Add => expr.values.iter().fold(Ok(Int(0)), |acc, val| {
+      Ar(Arithmetic::Add) => expr.values.iter().fold(Ok(Int(0)), |acc, val| {
         acc.and_then(do_op(&eval(val), |x, y| x + y))
       }),
-      Arithmetic::Mul => expr.values.iter().fold(Ok(Int(1)), |acc, val| {
+      Ar(Arithmetic::Mul) => expr.values.iter().fold(Ok(Int(1)), |acc, val| {
         acc.and_then(do_op(&eval(val), |x, y| x * y))
       }),
-      Arithmetic::Sub => expr
-        .values
-        .iter()
-        .fold(Err(EvalError::NotEnoughArguments), |acc, val| match acc {
-          Ok(acc_value) => do_op(&eval(val), |x, y| x - y)(acc_value),
-          Err(EvalError::NotEnoughArguments) => eval(val),
-          err @ Err(_) => err,
-        }),
-      Arithmetic::Div => expr
-        .values
-        .iter()
-        .fold(Err(EvalError::NotEnoughArguments), |acc, val| match acc {
-          Ok(acc_value) => match eval(val) {
-            Ok(Int(0)) => Err(EvalError::DividedByZero),
-            result => do_op(&result, |x, y| x / y)(acc_value),
-          },
-          Err(EvalError::NotEnoughArguments) => eval(val),
-          err @ Err(_) => err,
-        }),
+      Ar(Arithmetic::Sub) => {
+        expr
+          .values
+          .iter()
+          .fold(Err(EvalError::NotEnoughArguments), |acc, val| match acc {
+            Ok(acc_value) => do_op(&eval(val), |x, y| x - y)(acc_value),
+            Err(EvalError::NotEnoughArguments) => eval(val),
+            err @ Err(_) => err,
+          })
+      }
+      Ar(Arithmetic::Div) => {
+        expr
+          .values
+          .iter()
+          .fold(Err(EvalError::NotEnoughArguments), |acc, val| match acc {
+            Ok(acc_value) => match eval(val) {
+              Ok(Int(0)) => Err(EvalError::DividedByZero),
+              result => do_op(&result, |x, y| x / y)(acc_value),
+            },
+            Err(EvalError::NotEnoughArguments) => eval(val),
+            err @ Err(_) => err,
+          })
+      }
+      Cmp(Comparison::Eql) => cmp_eql(expr).map(|b| Bool(b)),
+      Cmp(Comparison::Dif) => cmp_eql(expr).map(|value| Bool(negate(value))),
       _ => Err(EvalError::NotImplemented),
     },
+    Int(x) => Ok(Int(*x)),
+    Bool(x) => Ok(Bool(*x)),
   }
 }
 
