@@ -1,5 +1,3 @@
-
-//extern crate pom;
 use pom::parser::*;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

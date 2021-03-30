@@ -1,5 +1,6 @@
-use canjica::{eval};
-use pipoquinha::{expression, Atom};
+use canjica::eval;
+use pipoquinha::atom::Atom::Error;
+use pipoquinha::atom::atom;
 use std::io;
 
 fn main() {
@@ -11,14 +12,10 @@ fn main() {
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
 
-    match expression().parse(input.as_bytes()) {
-      Ok(expr) => match eval(&Atom::Expr(expr)) {
-        Ok(result) => {
-          println!("=> {:?}", result)
-        }
-        Err(reason) => {
-          println!("Evaluation error: {:?}", reason)
-        }
+    match atom().parse(input.as_bytes()) {
+      Ok(a) => match eval(a) {
+        Error(reason) => println!("Eval error: {:?}", reason),
+        result => println!("=> {:?}", result)
       },
       Err(reason) => {
         println!("Parsing error: {:?}", reason);

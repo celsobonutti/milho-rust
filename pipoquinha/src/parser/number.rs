@@ -2,14 +2,14 @@ extern crate pom;
 use pom::parser::*;
 use std::str;
 
-pub fn integer<'a>() -> Parser<'a, u8, i64> {
+pub fn number<'a>() -> Parser<'a, u8, i64> {
   let sign = sym(b'-').opt();
   let number = one_of(b"1234567890").repeat(1..);
 
-  let integer = sign + number;
+  let number = sign + number;
 
-  integer
-    .name("Integer")
+  number
+    .name("Number")
     .collect()
     .convert(str::from_utf8)
     .convert(|s| i64::from_str_radix(s, 10))
@@ -18,7 +18,7 @@ pub fn integer<'a>() -> Parser<'a, u8, i64> {
 #[test]
 fn parse_positive_number() {
   let input = b"1995";
-  let output = integer().parse(input);
+  let output = number().parse(input);
 
   assert_eq!(output, Ok(1995));
 }
@@ -26,7 +26,7 @@ fn parse_positive_number() {
 #[test]
 fn parse_negative_number() {
   let input = b"-1995";
-  let output = integer().parse(input);
+  let output = number().parse(input);
 
   assert_eq!(output, Ok(-1995));
 }
@@ -34,7 +34,7 @@ fn parse_negative_number() {
 #[test]
 fn parse_garbage_number() {
   let input = b"19-95";
-  let output = integer().parse(input);
+  let output = number().parse(input);
 
   assert_eq!(output, Ok(19));
 }
