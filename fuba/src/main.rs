@@ -5,7 +5,7 @@ use std::io;
 
 fn main() {
   loop {
-    print!("λ> ");
+    print!("🌽> ");
 
     io::Write::flush(&mut io::stdout()).expect("flush failed!");
 
@@ -14,11 +14,10 @@ fn main() {
 
     match atom().parse(input.as_bytes()) {
       Ok(a) => match eval(a) {
-        Error(reason) => println!("Eval error: {:?}", reason),
-        result => println!("=> {:?}", result)
+        result => println!("🍿> {}", result)
       },
       Err(reason) => {
-        println!("Parsing error: {:?}", reason);
+        println!("Parsing error: {}", reason);
       }
     };
   }
