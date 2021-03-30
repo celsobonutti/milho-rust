@@ -17,7 +17,10 @@ pub enum EvalError {
 pub fn eval(atom: Atom) -> Atom {
   match atom {
     Expr(expr) => match expr.function {
-      Ar(Arithmetic::Add) => expr.values.iter().fold(Number(0), |acc, val| acc.add(val)),
+      Ar(Arithmetic::Add) => expr.values.into_iter().fold(Number(0), |acc, val| acc.add(&eval(val))),
+      Ar(Arithmetic::Mul) => expr.values.into_iter().fold(Number(1), |acc, val| acc.mul(&eval(val))),
+      Ar(Arithmetic::Sub) => expr.values.into_iter().reduce(|acc, val| acc.add(&eval(val).negate())).unwrap_or(Error("Not enough arguments for subtraction")),
+      Ar(Arithmetic::Div) => expr.values.into_iter().reduce(|acc, val| acc.div(&eval(val))).unwrap_or(Error("Not enough arguments for division")),
       _ => Error("Not implemented yet"),
     },
     Macro(m) => match *m {
@@ -31,9 +34,9 @@ pub fn eval(atom: Atom) -> Atom {
         _ => eval(if_true),
       },
     },
-    Number(x) => Number(x),
-    Bool(x) => Bool(x),
-    Error(x) => Error(x),
-    List(x) => List(x.clone()),
+    n@Number(_) => n,
+    b@Bool(_) => b,
+    e@Error(_) => e,
+    l@List(_) => l,
   }
 }

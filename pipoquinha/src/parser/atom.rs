@@ -51,7 +51,7 @@ pub fn space<'a>() -> Parser<'a, u8, ()> {
 pub fn expression<'a>() -> Parser<'a, u8, Expression> {
   let spaced_atom = space() * atom();
   let expression =
-    (sym(b'(') + space().opt()) * function() + spaced_atom.repeat(1..) - space().opt() - sym(b')');
+    (sym(b'(') + space().opt()) * function() + spaced_atom.repeat(0..) - space().opt() - sym(b')');
 
   expression.name("Expression").map(|(f, v)| Expression {
     function: f,
