@@ -6,14 +6,6 @@ use pipoquinha::atom::{
 use pipoquinha::boolean::Boolean;
 use pipoquinha::macros::Macro::*;
 
-#[derive(Eq, PartialEq, Debug, Clone, Copy)]
-pub enum EvalError {
-  NotImplemented,
-  NotEnoughArguments,
-  TypeError(&'static str),
-  DividedByZero,
-}
-
 pub fn eval(atom: Atom) -> Atom {
   match atom {
     Expr(expr) => match expr.function {

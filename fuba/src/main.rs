@@ -1,5 +1,4 @@
 use canjica::eval;
-use pipoquinha::atom::Atom::Error;
 use pipoquinha::atom::atom;
 use std::io;
 
