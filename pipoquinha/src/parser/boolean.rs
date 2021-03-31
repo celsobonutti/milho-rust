@@ -7,8 +7,8 @@ pub enum Boolean {
 }
 
 pub fn boolean<'a>() -> Parser<'a, u8, Boolean> {
-  let b_true = seq(b"True").map(|_| Boolean::True);
-  let b_false = seq(b"False").map(|_| Boolean::False);
+  let b_true = (seq(b"True") | seq(b"Real")).map(|_| Boolean::True);
+  let b_false = (seq(b"False") | seq(b"Feiki")).map(|_| Boolean::False);
   
   (b_true | b_false).name("Boolean")
 }

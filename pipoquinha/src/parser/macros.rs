@@ -2,7 +2,7 @@ extern crate pom;
 
 use pom::parser::*;
 
-use crate::{boolean::Boolean, parser::atom::{atom, space, Atom}};
+use crate::parser::atom::{atom, space, Atom};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Macro {
@@ -23,6 +23,13 @@ pub fn if_parser<'a>() -> Parser<'a, u8, Macro> {
     if_false,
   })
 }
+
+#[cfg(test)]
+mod tests {
+
+use super::*;
+
+use crate::boolean::Boolean;
 
 #[test]
 fn parse_if_with_static_condition() {
@@ -55,3 +62,5 @@ fn parse_if_with_expression_condition() {
 
   assert_eq!(Ok(expected_result), output)
 }
+}
+
