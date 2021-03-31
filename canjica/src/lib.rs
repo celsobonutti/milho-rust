@@ -1,19 +1,48 @@
 use pipoquinha::arithmetic::Arithmetic::*;
-use pipoquinha::comparison::Comparison::*;
 use pipoquinha::atom::{
   Atom::{self, *},
   Function::*,
 };
 use pipoquinha::boolean::Boolean;
+use pipoquinha::comparison::Comparison::*;
 use pipoquinha::macros::Macro::*;
 
 pub fn eval(atom: Atom) -> Atom {
   match atom {
     Expr(expr) => match expr.function {
-      Ar(Add) => expr.values.into_iter().fold(Number(0), |acc, val| acc.add(&eval(val))),
-      Ar(Mul) => expr.values.into_iter().fold(Number(1), |acc, val| acc.mul(&eval(val))),
-      Ar(Sub) => expr.values.into_iter().reduce(|acc, val| acc.add(&eval(val).negate())).unwrap_or(Error("Not enough arguments for subtraction")),
-      Ar(Div) => expr.values.into_iter().reduce(|acc, val| acc.div(&eval(val))).unwrap_or(Error("Not enough arguments for division")),
+      Ar(Add) => expr
+        .values
+        .into_iter()
+        .fold(Number(0), |acc, val| acc.add(&eval(val))),
+      Ar(Mul) => expr
+        .values
+        .into_iter()
+        .fold(Number(1), |acc, val| acc.mul(&eval(val))),
+      Ar(Sub) => expr
+        .values
+        .into_iter()
+        .reduce(|acc, val| acc.add(&eval(val).negate()))
+        .unwrap_or(Error("Not enough arguments for subtraction")),
+      Ar(Div) => expr
+        .values
+        .into_iter()
+        .reduce(|acc, val| acc.div(&eval(val)))
+        .unwrap_or(Error("Not enough arguments for division")),
+      Cmp(Eql) => {
+        if let Some((head, rest)) = expr.values.split_first() {
+          let base = eval(head.clone());
+
+          for value in rest {
+            if eval(value.clone()) != base {
+              return Bool(Boolean::False);
+            }
+          }
+
+          Bool(Boolean::True)
+        } else {
+          Error("Not enough arguments for comparison")
+        }
+      }
       _ => Error("Not implemented yet"),
     },
     Macro(m) => match *m {
@@ -27,9 +56,9 @@ pub fn eval(atom: Atom) -> Atom {
         _ => eval(if_true),
       },
     },
-    n@Number(_) => n,
-    b@Bool(_) => b,
-    e@Error(_) => e,
-    l@List(_) => l,
+    n @ Number(_) => n,
+    b @ Bool(_) => b,
+    e @ Error(_) => e,
+    l @ List(_) => l,
   }
 }
