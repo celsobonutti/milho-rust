@@ -6,19 +6,10 @@ use crate::atom::*;
 
 pub type List = Vec<Atom>;
 
-pub fn list<'a>() -> Parser<'a, u8, List> {
-  let spaced_atom = space() * atom();
-  let expression = sym(b'[') * (space().opt() * atom()).opt() + spaced_atom.repeat(0..)
+pub fn list_parser<'a>() -> Parser<'a, u8, List> {
+  sym(b'[') * space().opt() * list(atom(), space())
     - space().opt()
-    - sym(b']');
-
-  expression.name("List").map(|(head, mut rest)| match head {
-    None => vec![],
-    Some(h) => {
-      rest.insert(0, h);
-      rest
-    }
-  })
+    - sym(b']')
 }
 
 #[cfg(test)]
@@ -28,32 +19,32 @@ mod tests {
   use crate::boolean::Boolean::*;
 
   #[test]
-  fn parse_number_list() {
+  fn parse_number_list_parser() {
     let input = b"[ 1 2 3 ]";
-    let output = list().parse(input);
+    let output = list_parser().parse(input);
 
     assert_eq!(Ok(vec![Number(1), Number(2), Number(3)]), output);
   }
 
   #[test]
-  fn parse_multi_type_list() {
+  fn parse_multi_type_list_parser() {
     let input = b"[ 1 True 25 ]";
-    let output = list().parse(input);
+    let output = list_parser().parse(input);
 
     assert_eq!(Ok(vec![Number(1), Bool(True), Number(25)]), output)
   }
 
   #[test]
-  fn parse_lists_without_optional_spaces() {
+  fn parse_list_parsers_without_optional_spaces() {
     let input = b"[1 True]";
-    let output = list().parse(input);
+    let output = list_parser().parse(input);
     assert_eq!(Ok(vec![Number(1), Bool(True)]), output)
   }
 
   #[test]
-  fn parse_empty_list() {
+  fn parse_empty_list_parser() {
     let input = b"[]";
-    let output = list().parse(input);
+    let output = list_parser().parse(input);
     assert_eq!(Ok(vec![]), output);
   }
 }

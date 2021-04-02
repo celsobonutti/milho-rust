@@ -22,6 +22,7 @@ impl Display for Atom {
             },
             Macro(m) => write!(f, "Macro: {:?}", m),
             Expr(expr) => write!(f, "Expression: {:?}", expr), 
+            Identifier(i) => write!(f, "Identifier: {}", i),
         }
     }
 }

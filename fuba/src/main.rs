@@ -1,8 +1,11 @@
-use canjica::eval;
-use pipoquinha::atom::atom;
-use std::io;
+use canjica::{VarTable, eval};
+use pipoquinha::{action::{action, Action}, def::Variable};
+use std::{collections::HashMap, io};
 
 fn main() {
+  let mut table: VarTable = HashMap::new();
+  println!("Welcome to the 🌽 repl!\n");
+
   loop {
     print!("🌽> ");
 
@@ -11,9 +14,15 @@ fn main() {
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
 
-    match atom().parse(input.as_bytes()) {
-      Ok(a) => match eval(a) {
-        result => println!("🍿> {}", result)
+    match action().parse(input.as_bytes()) {
+      Ok(action) => match action {
+        Action::Atom(a) => println!("🍿> {}", eval(a, &table)),
+        Action::FunctionDefinition(_) => println!("Not implemented yet"),
+        Action::VariableDefinition( Variable { name, value }) => {
+           let value = eval(value, &table);
+           println!("🍿> #{}", name);
+           table.insert(name, value); 
+        }
       },
       Err(reason) => {
         println!("Parsing error: {}", reason);

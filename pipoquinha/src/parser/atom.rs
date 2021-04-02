@@ -2,22 +2,23 @@ extern crate pom;
 
 use pom::parser::*;
 
-use crate::macros::{Macro, if_parser};
+use crate::{identifier::identifier, macros::{Macro, if_parser}};
 
 use super::boolean::*;
 use super::arithmetic::*;
 use super::comparison::*;
 use super::number::*;
-use super::list::{List, list as list_parser};
+use super::list::{List, list_parser};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Atom {
   Expr(Expression),
   Number(i64),
   Bool(Boolean),
-  Error(&'static str),
+  Error(String),
   List(List),
   Macro(Box<Macro>),
+  Identifier(String),
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -42,6 +43,7 @@ pub fn atom<'a>() -> Parser<'a, u8, Atom> {
     | boolean().map(|b| Atom::Bool(b))
     | call(list_parser).map(|l| Atom::List(l))
     | call(if_parser).map(|m| Atom::Macro(Box::new(m)))
+    | call(identifier).map(|id| Atom::Identifier(id))
 }
 
 pub fn space<'a>() -> Parser<'a, u8, ()> {
@@ -49,9 +51,8 @@ pub fn space<'a>() -> Parser<'a, u8, ()> {
 }
 
 pub fn expression<'a>() -> Parser<'a, u8, Expression> {
-  let spaced_atom = space() * atom();
   let expression =
-    (sym(b'(') + space().opt()) * function() + spaced_atom.repeat(0..) - space().opt() - sym(b')');
+    sym(b'(') * space().opt() * function() - space()  + list(atom(), space())  - space().opt() - sym(b')');
 
   expression.name("Expression").map(|(f, v)| Expression {
     function: f,

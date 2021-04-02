@@ -5,22 +5,22 @@ impl Atom {
   pub fn add(&self, other: &Self) -> Self {
     match (self, other) {
       (Number(x), Number(y)) => Number(x + y),
-      (_, _) => Error("Cannot add non-numeric values"),
+      (_, _) => Error("Cannot add non-numeric values".to_string()),
     }
   }
 
   pub fn mul(&self, other: &Self) -> Self {
     match (self, other) {
         (Number(x), Number(y)) => Number(x * y),
-        (_, _) => Error("Cannot multiply non-numeric values"),
+        (_, _) => Error("Cannot multiply non-numeric values".to_string()),
     }
   }
 
   pub fn div(&self, other: &Self) -> Self {
     match (self, other) {
-        (_, Number(0)) => Error("Cannot divide by zero"),
+        (_, Number(0)) => Error("Cannot divide by zero".to_string()),
         (Number(x), Number(y)) => Number(x / y),
-        (_, _) => Error("Cannot divide non-numeric values"),
+        (_, _) => Error("Cannot divide non-numeric values".to_string()),
     }
   }
 
@@ -28,7 +28,7 @@ impl Atom {
     if let Number(x) = self {
       Number(-x)
     } else {
-      Error("Cannot negate non-numeric value")
+      Error("Cannot negate non-numeric value".to_string())
     }
   }
 

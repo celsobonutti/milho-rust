@@ -6,7 +6,7 @@ impl Atom {
        match self {
         Bool(False) => Bool(True),
         Bool(True) => Bool(False),
-        _ => Error("Cannot use not on non-boolean values"), 
+        _ => Error("Cannot use not on non-boolean values".to_string()), 
        } 
     }
 
@@ -15,7 +15,7 @@ impl Atom {
             (Bool(False), _) => Bool(False),
             (_, Bool(False)) => Bool(False),
             (Bool(True), Bool(True)) => Bool(True),
-            _ => Error("Cannot AND non boolean values")
+            _ => Error("Cannot AND non boolean values".to_string())
         }
     }
 }
