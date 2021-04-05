@@ -9,18 +9,46 @@ pub struct List {
   pub tail: Vec<Atom>,
 }
 
-pub fn list_parser<'a>() -> Parser<'a, u8, List> {
-  let parser = sym(b'(') * space().opt() * (atom() - space()).opt() + list(atom(), space())
-    - space().opt()
-    - sym(b')');
+impl List {
+  pub fn append(&self, atom: Atom) -> Self {
+    let List { head, tail } = self.clone();
+    if let Some(head) = head {
+      let mut new_tail = tail.clone();
+      new_tail.insert(0, head);
+      List {
+        head: Some(atom),
+        tail: new_tail,
+      }
+    } else {
+      List {
+        head: Some(atom),
+        tail,
+      }
+    }
+  }
+}
 
-  parser.map(|(head, tail)| List { head, tail }).name("List")
+pub fn list_parser<'a>() -> Parser<'a, u8, List> {
+  let parser = sym(b'(') * space().opt() * list(atom(), space()) - space().opt() - sym(b')');
+
+  parser
+    .map(|l| match l.split_first() {
+      None => List {
+        head: None,
+        tail: vec![],
+      },
+      Some((head, tail)) => List {
+        head: Some(head.clone()),
+        tail: Vec::from(tail),
+      },
+    })
+    .name("List")
 }
 
 #[cfg(test)]
 mod tests {
   use super::{list_parser, List};
-  use crate::atom::Atom::*;
+  use crate::parser::atom::Atom::*;
 
   #[test]
   fn parse_sum_list_parser() {

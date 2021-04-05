@@ -1,8 +1,7 @@
 use std::fmt::{Display, Formatter, Result};
 
-use crate::parser::atom::Function;
-use crate::atom::Atom::{self, *};
-use crate::boolean::Boolean;
+use crate::parser::atom::Atom::{self, *};
+use crate::parser::boolean::Boolean;
 
 impl Display for Atom {
   fn fmt(&self, f: &mut Formatter<'_>) -> Result {
@@ -22,20 +21,14 @@ impl Display for Atom {
         write!(f, "Error: {}", reason)
       }
       Identifier(i) => write!(f, "#{}", i),
-      Function(fun) => {
-          match *fun.clone() {
-            Function {
-                parameters,
-                ..
-            } => write!(f, "#{}", parameters.len())
-        }
-      }
+      Function(fun) => write!(f, "fn#{}", fun.param_len()),
       List(l) => {
         match l.clone().head {
             None => write!(f, "nil"),
             Some(h) => write!(f, "List with {} as head", h)
         }
       }
+      VariableInsertion(name, _) => write!(f, "Inserted: #{}", name)
     }
   }
 }

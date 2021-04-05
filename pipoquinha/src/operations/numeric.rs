@@ -5,6 +5,8 @@ impl Atom {
   pub fn add(&self, other: &Self) -> Self {
     match (self, other) {
       (Number(x), Number(y)) => Number(x + y),
+      (e@Error(_), _) => e.clone(),
+      (_, e@Error(_)) => e.clone(),
       (_, _) => Error("Cannot add non-numeric values".to_string()),
     }
   }

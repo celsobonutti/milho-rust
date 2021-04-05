@@ -16,8 +16,8 @@ pub fn vector<'a>() -> Parser<'a, u8, Vector> {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::atom::Atom::{Bool, Number};
-  use crate::boolean::Boolean::*;
+  use crate::parser::atom::Atom::{Bool, Number};
+  use crate::parser::boolean::Boolean::*;
 
   #[test]
   fn parse_number_vector() {

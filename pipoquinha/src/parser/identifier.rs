@@ -7,6 +7,10 @@ const BUILT_IN_FUNCTIONS: [&str; 15] = [
   "if", "def", "defn", "+", "-", "/", "*", ":", "=", "/=", ">", "<", ">=", "let", "fn",
 ];
 
+pub fn is_builtin(identifier: &str) -> bool {
+    BUILT_IN_FUNCTIONS.contains(&identifier)
+}
+
 pub fn valid_id<'a>() -> Parser<'a, u8, &'a [u8]> {
   (is_a(alpha) + (is_a(alphanum) | one_of(b"_-")).repeat(0..)).collect()
 }
@@ -15,7 +19,7 @@ pub fn user_identifier<'a>() -> Parser<'a, u8, String> {
   valid_id()
     .convert(|id| {
       let keyword = from_utf8(id).unwrap();
-      if BUILT_IN_FUNCTIONS.contains(&keyword) {
+      if is_builtin(&keyword) {
         Err(format!(
           "Cannot use {} as identifier because it is a reserved keyword.",
           keyword
