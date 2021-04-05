@@ -2,7 +2,8 @@ extern crate pom;
 
 use pom::parser::*;
 
-use crate::atom::*;
+use super::atom::*;
+use super::space::*;
 
 pub type Vector = Vec<Atom>;
 
