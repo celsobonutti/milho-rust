@@ -8,7 +8,7 @@ use super::boolean::*;
 use super::arithmetic::*;
 use super::comparison::*;
 use super::number::*;
-use super::list::{List, list_parser};
+use super::vector::{Vector, vector};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Atom {
@@ -16,7 +16,7 @@ pub enum Atom {
   Number(i64),
   Bool(Boolean),
   Error(String),
-  List(List),
+  Vector(Vector),
   Macro(Box<Macro>),
   Identifier(String),
   UserFunction(Box<UserFunction>),
@@ -44,7 +44,7 @@ pub fn atom<'a>() -> Parser<'a, u8, Atom> {
   number().map(|i| Atom::Number(i))
     | call(expression).map(|expr| Atom::Expr(expr))
     | boolean().map(|b| Atom::Bool(b))
-    | call(list_parser).map(|l| Atom::List(l))
+    | call(vector).map(|l| Atom::Vector(l))
     | call(if_parser).map(|m| Atom::Macro(Box::new(m)))
     | call(identifier).map(|id| Atom::Identifier(id))
 }

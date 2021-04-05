@@ -39,11 +39,11 @@ mod tests {
 
   
   #[test]
-  fn list_var() {
-    let input = b"(def my-list [6 8 True])";
+  fn vector_var() {
+    let input = b"(def my-vector [6 8 True])";
     let expected = Variable {
-      name: String::from("my-list"),
-      value: Atom::List(vec![Atom::Number(6), Atom::Number(8), Atom::Bool(Boolean::True)])
+      name: String::from("my-vector"),
+      value: Atom::Vector(vec![Atom::Number(6), Atom::Number(8), Atom::Bool(Boolean::True)])
     };
 
     assert_eq!(Ok(expected), def().parse(input));

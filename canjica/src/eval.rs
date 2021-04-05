@@ -101,7 +101,7 @@ pub fn eval(atom: Atom, variables: &VarTable) -> Atom {
         Error(format!("Undefined variable: {}", id))
       }
     }
-    List(l) => List(l.into_iter().map(|item| eval(item, variables)).collect()),
+    Vector(l) => Vector(l.into_iter().map(|item| eval(item, variables)).collect()),
     u @ UserFunction(_) => u,
     n @ Number(_) => n,
     b @ Bool(_) => b,

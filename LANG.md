@@ -24,9 +24,9 @@ False ;; false
 (make-error 404 "Not found");; Erros cannot be created out of nowhere. You can, though, create your own errors using the make-error builtin
 (make-error "oops, I broke" 20);; Notice that the first argument needs to be a number, and the second, a string. Otherwise you'll get an error, but not the one you're expecting. :p
 ```
-* List
+* Vector
 ```clojure
-[ "hello" "my" "kind" "stranger" ", don't you have something better to do?" ] ;; Lists are declared with brackets and spaces between elements (yup, no commas)
+[ "hello" "my" "kind" "stranger" ", don't you have something better to do?" ] ;; Vectors are declared with brackets and spaces between elements (yup, no commas)
 [ 5 "years" ] ;; They can hold multiple data types
 (: 25 [ "years" ]) ;; And you can prepend to their head like this
 (++ [ "years" ] [ 25 ]) ;; And concatenated them like this
@@ -46,7 +46,7 @@ Nil ;;
 ```clojure
 (defn      ;; functions are declared with the defn built-in
   sum      ;; its first argument is the name of your function
-  [ a b ]  ;; the second one is a list with the name of your parameters  
+  [ a b ]  ;; the second one is a vector with the name of your parameters  
   (+ a b)  ;; and the third is your function per se
 ) 
 ```

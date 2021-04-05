@@ -4,7 +4,7 @@ pub mod boolean;
 pub mod comparison;
 pub mod number;
 pub mod atom;
-pub mod list;
+pub mod vector;
 pub mod defn;
 pub mod def;
 pub mod macros;

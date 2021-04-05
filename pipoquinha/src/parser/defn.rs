@@ -9,12 +9,12 @@ pub struct UserFunction {
   pub atom: Atom,
 }
 
-pub fn id_list<'a>() -> Parser<'a, u8, Vec<String>> {
+pub fn id_vector<'a>() -> Parser<'a, u8, Vec<String>> {
     sym(b'[') * space().opt() * list(identifier(), space()) - space().opt() - sym(b']')
 }
 
 pub fn defn<'a>() -> Parser<'a, u8, UserFunction> {
-    let rules = sym(b'(') * space().opt() * seq(b"defn") * space() * identifier() - space() + id_list() - space() + atom() - space().opt() - sym(b')');
+    let rules = sym(b'(') * space().opt() * seq(b"defn") * space() * identifier() - space() + id_vector() - space() + atom() - space().opt() - sym(b')');
 
     rules
     .map(|((name, parameters), atom)| UserFunction { name, parameters, atom })

@@ -10,9 +10,9 @@ impl Display for Atom {
       Number(x) => write!(f, "{}", x),
       Bool(Boolean::False) => write!(f, "False"),
       Bool(Boolean::True) => write!(f, "True"),
-      List(list) => {
+      Vector(vector) => {
         let mut text = String::from("[ ");
-        for item in list {
+        for item in vector {
           text.push_str(&format!("{} ", *item));
         }
         text.push(']');
