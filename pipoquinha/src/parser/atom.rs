@@ -2,7 +2,7 @@ extern crate pom;
 
 use pom::parser::*;
 
-use crate::{identifier::identifier, macros::{Macro, if_parser}};
+use crate::{defn::UserFunction, identifier::identifier, macros::{Macro, if_parser}};
 
 use super::boolean::*;
 use super::arithmetic::*;
@@ -19,12 +19,14 @@ pub enum Atom {
   List(List),
   Macro(Box<Macro>),
   Identifier(String),
+  UserFunction(Box<UserFunction>),
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Function {
   Ar(Arithmetic),
   Cmp(Comparison),
+  UserDefined(String),
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -34,7 +36,8 @@ pub struct Expression {
 }
 
 pub fn function<'a>() -> Parser<'a, u8, Function> {
-  comparison_functions().map(|c| Function::Cmp(c)) | arithmetic_ops().map(|a| Function::Ar(a))
+    use Function::*;
+  comparison_functions().map(Cmp) | arithmetic_ops().map(Ar) | identifier().map(UserDefined)
 }
 
 pub fn atom<'a>() -> Parser<'a, u8, Atom> {

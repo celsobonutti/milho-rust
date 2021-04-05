@@ -1,12 +1,12 @@
 use pom::parser::*;
 
-use crate::{atom::{expression, Expression, space}, identifier::identifier};
+use crate::{atom::{Atom, atom, space}, identifier::identifier};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct UserFunction {
   pub name: String,
-  pub arguments: Vec<String>,
-  pub function: Expression,
+  pub parameters: Vec<String>,
+  pub atom: Atom,
 }
 
 pub fn id_list<'a>() -> Parser<'a, u8, Vec<String>> {
@@ -14,10 +14,10 @@ pub fn id_list<'a>() -> Parser<'a, u8, Vec<String>> {
 }
 
 pub fn defn<'a>() -> Parser<'a, u8, UserFunction> {
-    let rules = sym(b'(') * space().opt() * seq(b"defn") * space() * identifier() - space() + id_list() - space() + expression() - space().opt() - sym(b')');
+    let rules = sym(b'(') * space().opt() * seq(b"defn") * space() * identifier() - space() + id_list() - space() + atom() - space().opt() - sym(b')');
 
     rules
-    .map(|((name, arguments), function)| UserFunction { name, arguments, function })
+    .map(|((name, parameters), atom)| UserFunction { name, parameters, atom })
     .name("Function definition")
 }
 
@@ -29,12 +29,12 @@ use super::*;
 fn simple_function() {
     let input = b"(defn add [ x y ] (+ x y))";
     let name = String::from("add");
-    let arguments = vec![String::from("x"), String::from("y")];
-    let function = expression().parse(b"(+ x y)").unwrap();
+    let parameters = vec![String::from("x"), String::from("y")];
+    let atom = atom().parse(b"(+ x y)").unwrap();
     let expected = UserFunction {
         name,
-        arguments,
-        function
+        parameters,
+        atom
     };
     assert_eq!(Ok(expected), defn().parse(input));
     }

@@ -1,5 +1,9 @@
-use canjica::{VarTable, eval};
-use pipoquinha::{action::{action, Action}, def::Variable};
+use canjica::{eval, VarTable};
+use pipoquinha::{
+  action::{action, Action},
+  atom::Atom,
+  def::Variable,
+};
 use std::{collections::HashMap, io};
 
 fn main() {
@@ -17,11 +21,18 @@ fn main() {
     match action().parse(input.as_bytes()) {
       Ok(action) => match action {
         Action::Atom(a) => println!("🍿> {}", eval(a, &table)),
-        Action::FunctionDefinition(_) => println!("Not implemented yet"),
-        Action::VariableDefinition( Variable { name, value }) => {
-           let value = eval(value, &table);
-           println!("🍿> #{}", name);
-           table.insert(name, value); 
+        Action::VariableDefinition(Variable { name, value }) => {
+          let value = eval(value, &table);
+          println!("🍿> #{}", name);
+          table.insert(name, value);
+        }
+        Action::FunctionDefinition(function) => {
+          let name = function.name.clone();
+          let function = Atom::UserFunction(Box::new(function));
+
+          println!("🍿> {}", function);
+
+          table.insert(name, function);
         }
       },
       Err(reason) => {
