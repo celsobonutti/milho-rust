@@ -10,7 +10,7 @@ pub struct List {
 }
 
 pub fn list_parser<'a>() -> Parser<'a, u8, List> {
-  let parser = sym(b'(') * space().opt() * atom().opt() - space() + list(atom(), space())
+  let parser = sym(b'(') * space().opt() * (atom() - space()).opt() + list(atom(), space())
     - space().opt()
     - sym(b')');
 
@@ -138,6 +138,19 @@ mod tests {
       Ok(List {
         head,
         tail: vec![local_variables, List(expression)]
+      }),
+      list_parser().parse(input)
+    );
+  }
+
+  #[test]
+  fn empty_list() {
+    let input = b"()";
+
+    assert_eq!(
+      Ok(List {
+        head: None,
+        tail: vec![]
       }),
       list_parser().parse(input)
     );
