@@ -33,3 +33,4 @@ pub fn atom<'a>() -> Parser<'a, u8, Atom> {
     | call(vector).map(Atom::Vector)
     | call(internal_identifier).map(Atom::Identifier)
 }
+

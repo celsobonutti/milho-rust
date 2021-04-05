@@ -29,7 +29,7 @@ pub fn user_identifier<'a>() -> Parser<'a, u8, String> {
 
 pub fn internal_identifier<'a>() -> Parser<'a, u8, String> {
   BUILT_IN_FUNCTIONS
-    .into_iter()
+    .iter()
     .fold(valid_id(), |parser, builtin_name| {
       parser | seq(builtin_name.as_bytes())
     })
