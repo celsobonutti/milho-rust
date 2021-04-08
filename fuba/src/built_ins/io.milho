@@ -1,0 +1,6 @@
+(defn println [x]
+  (do
+    (print x)
+    (print "\n")
+  )
+) 

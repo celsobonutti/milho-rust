@@ -1,0 +1,6 @@
+(defn prepend-tail [ atom list ]
+  ( let 
+    [ head (car list) tail (cdr list) ]
+    (cons head (cons atom tail))
+  )
+)

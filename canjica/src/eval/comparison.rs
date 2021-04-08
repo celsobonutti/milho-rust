@@ -1,6 +1,6 @@
-use pipoquinha::parser::list::List;
 use pipoquinha::parser::atom::Atom::{self, *};
 use pipoquinha::parser::boolean::Boolean;
+use pipoquinha::parser::list::List;
 
 use crate::{eval, VarTable};
 
@@ -9,7 +9,6 @@ pub fn eq(list: List, variables: &VarTable) -> Atom {
   if let Some(head) = arguments.next() {
     let mut res = Bool(Boolean::True);
     let base = eval(head, variables);
-
     while let Some(argument) = arguments.next() {
       match eval(argument, variables) {
         error @ Error(_) => return error,

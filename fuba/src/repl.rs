@@ -3,8 +3,10 @@ use std::{collections::HashMap, io};
 use canjica::{eval, VarTable};
 use pipoquinha::parser::atom::{atom, Atom};
 
-pub fn start() {
+pub fn start(built_ins: VarTable) {
   let mut table: VarTable = HashMap::new();
+  table.extend(built_ins);
+
   println!("Welcome to the 🌽 repl!\n");
 
   loop {

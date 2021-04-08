@@ -6,3 +6,4 @@ pub mod identifier;
 pub mod list;
 pub mod space;
 pub mod file;
+pub mod string;

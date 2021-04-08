@@ -1,0 +1,34 @@
+(defn cons [ h t ]
+  (concat [h] t)
+)
+
+(defn map [ f l ]
+  (if (= l [])
+    []
+    (let [ h (head l) t (tail l) ]
+      (cons (f h) (map f t))
+    )
+  )
+)
+
+(defn filter [ f l ]
+  (if (= l [])
+    []
+    (let [ h (head l) t (tail l) ]
+      (if (f h)
+        (cons h (filter f t))
+        (filter f t)
+      )
+    )
+  )
+)
+
+(defn foldl [ f acc l ]
+  (if (= l [])
+    acc
+    (let [ h (head l) t (tail l) ]
+      (foldl f (f h acc) t)
+    )
+  )
+)
+

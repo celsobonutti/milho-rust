@@ -9,38 +9,27 @@ pub struct List {
   pub tail: Vec<Atom>,
 }
 
-impl List {
-  pub fn append(&self, atom: Atom) -> Self {
-    let List { head, tail } = self.clone();
-    if let Some(head) = head {
-      let mut new_tail = tail.clone();
-      new_tail.insert(0, head);
-      List {
-        head: Some(atom),
-        tail: new_tail,
-      }
-    } else {
-      List {
-        head: Some(atom),
-        tail,
-      }
-    }
-  }
-}
-
-pub fn list_parser<'a>() -> Parser<'a, u8, List> {
-  let parser = sym(b'(') * space().opt() * list(atom(), space()) - space().opt() - sym(b')');
+pub fn list_parser<'a>() -> Parser<'a, u8, (bool, List)> {
+  let parser = sym(b'\'').opt() + sym(b'(') * space().opt() * list(atom(), space())
+    - space().opt()
+    - sym(b')');
 
   parser
-    .map(|l| match l.split_first() {
-      None => List {
-        head: None,
-        tail: vec![],
-      },
-      Some((head, tail)) => List {
-        head: Some(head.clone()),
-        tail: Vec::from(tail),
-      },
+    .map(|(quote, l)| {
+      let list = match l.split_first() {
+        None => List {
+          head: None,
+          tail: vec![],
+        },
+        Some((head, tail)) => List {
+          head: Some(head.clone()),
+          tail: Vec::from(tail),
+        },
+      };
+
+      let is_applied = quote.is_none();
+
+      (is_applied, list)
     })
     .name("List")
 }
@@ -57,10 +46,13 @@ mod tests {
 
     assert_eq!(
       output,
-      Ok(List {
-        head: Some(Identifier(String::from("+"))),
-        tail: vec![Number(3), Number(3), Number(4)]
-      })
+      Ok((
+        true,
+        List {
+          head: Some(Identifier(String::from("+"))),
+          tail: vec![Number(3), Number(3), Number(4)]
+        }
+      ))
     );
   }
 
@@ -68,13 +60,16 @@ mod tests {
   fn parse_sum_within_sum() {
     let input = b"(+ 3 (+ 5 3))";
     let output = list_parser().parse(input);
-    let internal_sum = Box::new(list_parser().parse(b"(+ 5 3)").unwrap());
+    let (_, internal_sum) = list_parser().parse(b"(+ 5 3)").unwrap();
 
     assert_eq!(
-      Ok(List {
-        head: Some(Identifier(String::from("+"))),
-        tail: vec![Number(3), List(internal_sum)]
-      }),
+      Ok((
+        true,
+        List {
+          head: Some(Identifier(String::from("+"))),
+          tail: vec![Number(3), List(Box::new(internal_sum))]
+        }
+      )),
       output
     )
   }
@@ -93,10 +88,13 @@ mod tests {
     });
 
     assert_eq!(
-      Ok(List {
-        head,
-        tail: vec![function_name, parameters, List(expression)]
-      }),
+      Ok((
+        true,
+        List {
+          head,
+          tail: vec![function_name, parameters, List(expression)]
+        }
+      )),
       list_parser().parse(input)
     )
   }
@@ -110,10 +108,13 @@ mod tests {
     let value = Number(250);
 
     assert_eq!(
-      Ok(List {
-        head,
-        tail: vec![var_name, value]
-      }),
+      Ok((
+        true,
+        List {
+          head,
+          tail: vec![var_name, value]
+        }
+      )),
       list_parser().parse(input)
     );
   }
@@ -134,10 +135,13 @@ mod tests {
     }));
 
     assert_eq!(
-      Ok(List {
-        head,
-        tail: vec![parameters, expression]
-      }),
+      Ok((
+        true,
+        List {
+          head,
+          tail: vec![parameters, expression]
+        }
+      )),
       list_parser().parse(input)
     );
   }
@@ -163,10 +167,13 @@ mod tests {
     });
 
     assert_eq!(
-      Ok(List {
-        head,
-        tail: vec![local_variables, List(expression)]
-      }),
+      Ok((
+        true,
+        List {
+          head,
+          tail: vec![local_variables, List(expression)]
+        }
+      )),
       list_parser().parse(input)
     );
   }
@@ -176,10 +183,13 @@ mod tests {
     let input = b"()";
 
     assert_eq!(
-      Ok(List {
-        head: None,
-        tail: vec![]
-      }),
+      Ok((
+        true,
+        List {
+          head: None,
+          tail: vec![]
+        }
+      )),
       list_parser().parse(input)
     );
   }

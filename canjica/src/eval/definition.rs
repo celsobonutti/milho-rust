@@ -12,7 +12,7 @@ pub fn variable(list: List, variables: &VarTable) -> Atom {
 
       VariableInsertion(name.clone(), Box::new(value))
     }
-    _ => Error("Wrong number of arguments for def".to_string()),
+    _ => Error("Wrong number of arguments for 'def'".to_string()),
   }
 }
 
@@ -23,14 +23,14 @@ pub fn function(list: List, _variables: &VarTable) -> Atom {
 
       VariableInsertion(name.clone(), Box::new(function))
     }
-    _ => Error("Wrong number of arguments for defn".to_string()),
+    _ => Error("Wrong number of arguments for 'defn'".to_string()),
   }
 }
 
 pub fn anonymous_function(list: List, _variables: &VarTable) -> Atom {
   match list.tail.as_slice() {
     [Vector(parameters), atom] => Atom::new_function(parameters, atom),
-    _ => Error("Wrong type of arguments for fn".to_string()),
+    _ => Error("Wrong type of arguments for 'fn'".to_string()),
   }
 }
 

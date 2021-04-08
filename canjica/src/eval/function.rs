@@ -13,6 +13,8 @@ pub fn execute(list: List, variables: &VarTable) -> Atom {
 
         let mut local_table = HashMap::new();
 
+        local_table.extend(variables.clone());
+
         function
           .parameters
           .into_iter()
@@ -20,8 +22,6 @@ pub fn execute(list: List, variables: &VarTable) -> Atom {
           .for_each(|(key, value)| {
             local_table.insert(key, eval(value, variables));
           });
-
-        local_table.extend(variables.clone());
 
         eval(function.atom, &mut local_table)
       } else {

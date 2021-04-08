@@ -6,12 +6,13 @@ use super::boolean::*;
 use super::identifier::*;
 use super::list::{list_parser, List};
 use super::number::*;
+use super::string::*;
 use super::vector::*;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Function {
   pub parameters: Vec<String>,
-  pub atom: Atom
+  pub atom: Atom,
 }
 
 impl Function {
@@ -23,6 +24,7 @@ impl Function {
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Atom {
   List(Box<List>),
+  UnappliedList(Box<List>),
   Number(i64),
   Bool(Boolean),
   Error(String),
@@ -30,12 +32,21 @@ pub enum Atom {
   Identifier(String),
   Function(Box<Function>),
   VariableInsertion(String, Box<Atom>),
+  Str(String),
+  Nil,
 }
 
 pub fn atom<'a>() -> Parser<'a, u8, Atom> {
   number().map(Atom::Number)
     | boolean().map(Atom::Bool)
-    | call(list_parser).map(|l| Atom::List(Box::new(l)))
+    | string().map(Atom::Str)
+    | call(list_parser).map(|(is_applied, l)| {
+      if is_applied {
+        Atom::List(Box::new(l))
+      } else {
+        Atom::UnappliedList(Box::new(l))
+      }
+    })
     | call(vector).map(Atom::Vector)
     | call(internal_identifier).map(Atom::Identifier)
 }
@@ -60,6 +71,22 @@ impl Atom {
       }))
     } else {
       Self::Error("Every argument in a function must be a identifier".to_string())
+    }
+  }
+
+  pub fn is_vector(&self) -> bool {
+    if let Atom::Vector(_) = self {
+      true
+    } else {
+      false
+    }
+  }
+
+  pub fn is_string(&self) -> bool {
+    if let Atom::Str(_) = self {
+      true
+    } else {
+      false
     }
   }
 }

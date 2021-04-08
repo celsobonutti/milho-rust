@@ -1,0 +1,15 @@
+(defn pow [ x y ]
+  (eval (cons * (make-list y x)))
+)
+
+(defn rem [ x y ]
+  (- x (* (/ x y) y))
+)
+
+(defn even [ x ]
+  (= 0 (rem x 2)) 
+)
+
+(defn odd [ x ]
+  (not (even x))
+)

@@ -3,12 +3,13 @@ use std::str::from_utf8;
 use pom::char_class::*;
 use pom::parser::*;
 
-const BUILT_IN_FUNCTIONS: [&str; 15] = [
-  "if", "def", "defn", "+", "-", "/", "*", ":", "=", "/=", ">", "<", ">=", "let", "fn",
+const BUILT_IN_FUNCTIONS: [&str; 18] = [
+  "if", "def", "defn", "/=", ">=", "<=", "+", "-", "/", "*", ">", "<", ":", "=", "let", "fn",
+  "not", "println",
 ];
 
 pub fn is_builtin(identifier: &str) -> bool {
-    BUILT_IN_FUNCTIONS.contains(&identifier)
+  BUILT_IN_FUNCTIONS.contains(&identifier)
 }
 
 pub fn valid_id<'a>() -> Parser<'a, u8, &'a [u8]> {

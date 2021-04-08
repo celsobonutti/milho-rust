@@ -20,15 +20,28 @@ impl Display for Atom {
       Error(reason) => {
         write!(f, "Error: {}", reason)
       }
-      Identifier(i) => write!(f, "#{}", i),
+      Identifier(i) => write!(f, "{}", i),
       Function(fun) => write!(f, "fn#{}", fun.param_len()),
       List(l) => {
-        match l.clone().head {
-            None => write!(f, "nil"),
-            Some(h) => write!(f, "List with {} as head", h)
+        let mut text = String::from("( ");
+
+        let list = l.clone();
+
+        if l.head.is_some() {
+          text.push_str(&format!("{} ", list.head.unwrap()));
+
+          for item in list.tail {
+            text.push_str(&format!("{} ", item));
+          }
         }
+
+        text.push(')');
+        write!(f, "{}", text)
       }
-      VariableInsertion(name, _) => write!(f, "Inserted: #{}", name)
+      UnappliedList(l) => write!(f, "Unapplied: {:?}", l),
+      VariableInsertion(name, _) => write!(f, "Inserted: #{}", name),
+      Str(string) => write!(f, "\"{}\"", string),
+      Nil => write!(f, "Nil"),
     }
   }
 }
