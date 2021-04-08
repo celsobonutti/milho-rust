@@ -17,10 +17,10 @@ fn load_builtins() -> VarTable {
   let mut table = HashMap::new();
 
   let folder = include_bytes_array!(
-    "built_ins/math.milho",
-    "built_ins/io.milho",
-    "built_ins/vector.milho",
-    "built_ins/list.milho"
+    "std/math.milho",
+    "std/io.milho",
+    "std/vector.milho",
+    "std/list.milho"
   );
 
   for code_file in folder.iter() {

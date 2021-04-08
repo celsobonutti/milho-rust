@@ -3,12 +3,14 @@ use pipoquinha::parser::boolean::Boolean;
 
 use crate::{eval, VarTable};
 
+use super::list::execute;
+
 pub fn do_function(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
-    let mut atom = Atom::Nil;
-    for item in arguments {
-        atom = eval(item, variables);
-    }
-    atom
+  let mut atom = Atom::Nil;
+  for item in arguments {
+    atom = eval(item, variables);
+  }
+  atom
 }
 
 pub fn if_fun(parameters: Vec<Atom>, variables: &VarTable) -> Atom {
@@ -23,5 +25,24 @@ pub fn if_fun(parameters: Vec<Atom>, variables: &VarTable) -> Atom {
     eval(result, variables)
   } else {
     Atom::Error("Wrong number of parameters for if".to_string())
+  }
+}
+
+#[allow(unreachable_code)]
+pub fn loop_function(mut parameters: Vec<Atom>, variables: &VarTable) -> Atom {
+  if parameters.len() == 1 {
+    if let Atom::List(l) = parameters.remove(0) {
+      loop {
+        execute(*l.clone(), variables);
+      }
+      Atom::Nil
+    } else {
+      Atom::Error("Cannot loop over non-list value".to_string())
+    }
+  } else {
+    Atom::Error(format!(
+      "Wrong number of parameters for 'loop': was expecting 1, found {}",
+      parameters.len()
+    ))
   }
 }
