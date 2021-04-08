@@ -1,7 +1,6 @@
 mod arithmetic;
 mod boolean;
 mod comparison;
-mod conditional;
 mod definition;
 mod function;
 mod io;
@@ -19,11 +18,10 @@ use super::VarTable;
 
 pub fn eval(atom: Atom, variables: &VarTable) -> Atom {
   match atom {
+    Identifier(id) if is_builtin(id.as_str()) => Identifier(id),
     Identifier(id) => {
       if let Some(value) = variables.get(id.as_str()) {
         value.clone()
-      } else if is_builtin(id.as_str()) {
-        Identifier(id)
       } else {
         Error(format!("Undefined variable: {}", id))
       }

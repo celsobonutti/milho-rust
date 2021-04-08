@@ -1,11 +1,10 @@
 use pipoquinha::parser::atom::Atom::{self, *};
 use pipoquinha::parser::boolean::Boolean;
-use pipoquinha::parser::list::List;
 
 use crate::{eval, VarTable};
 
-pub fn eq(list: List, variables: &VarTable) -> Atom {
-  let mut arguments = list.tail.into_iter();
+pub fn eq(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+  let mut arguments = arguments.into_iter();
   if let Some(head) = arguments.next() {
     let mut res = Bool(Boolean::True);
     let base = eval(head, variables);
@@ -18,6 +17,6 @@ pub fn eq(list: List, variables: &VarTable) -> Atom {
     }
     res
   } else {
-    Error("Not enough arguments for comparison".to_string())
+    Error("Wrong number of arguments for '=': was expecting at least 1, found 0".to_string())
   }
 }

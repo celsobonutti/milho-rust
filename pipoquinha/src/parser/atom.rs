@@ -52,13 +52,13 @@ pub fn atom<'a>() -> Parser<'a, u8, Atom> {
 }
 
 impl Atom {
-  pub fn new_function(parameters: &Vec<Atom>, atom: &Atom) -> Self {
-    if parameters.iter().all(|item| item.is_user_identifier()) {
+  pub fn new_function(parameters: Vec<Atom>, atom: Atom) -> Self {
+    if parameters.iter().all(|item| item.is_identifier()) {
       let params = parameters
         .into_iter()
         .filter_map(|value| {
           if let Self::Identifier(id) = value {
-            Some(id.clone())
+            Some(id)
           } else {
             None
           }
@@ -67,7 +67,7 @@ impl Atom {
 
       Self::Function(Box::new(Function {
         parameters: params,
-        atom: atom.clone(),
+        atom,
       }))
     } else {
       Self::Error("Every argument in a function must be a identifier".to_string())
@@ -82,8 +82,24 @@ impl Atom {
     }
   }
 
+  pub fn is_identifier(&self) -> bool {
+    if let Atom::Identifier(_) = self {
+      true
+    } else {
+      false
+    }
+  }
+
   pub fn is_string(&self) -> bool {
     if let Atom::Str(_) = self {
+      true
+    } else {
+      false
+    }
+  }
+
+  pub fn is_error(&self) -> bool {
+    if let Atom::Error(_) = self {
       true
     } else {
       false

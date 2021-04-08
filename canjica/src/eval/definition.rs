@@ -1,41 +1,85 @@
 use std::collections::HashMap;
 
-use pipoquinha::parser::atom::Atom::{self, *};
-use pipoquinha::parser::list::List;
+use pipoquinha::parser::{
+  atom::Atom::{self, *},
+  identifier::is_builtin,
+};
 
 use crate::{eval, VarTable};
 
-pub fn variable(list: List, variables: &VarTable) -> Atom {
-  match list.tail.as_slice() {
-    [Identifier(name), value] => {
-      let value = eval(value.clone(), variables);
+pub fn variable(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+  if arguments.len() == 2 {
+    if let Identifier(name) = arguments.remove(0) {
+      if !is_builtin(name.as_str()) {
+        let value = eval(arguments.remove(0), variables);
 
-      VariableInsertion(name.clone(), Box::new(value))
+        VariableInsertion(name, Box::new(value))
+      } else {
+        Error(format!(
+          "Cannot define '{}' as a variable, as it's the name of a built-in",
+          name
+        ))
+      }
+    } else {
+      Error("First argument of 'def' must be a identifier.".to_string())
     }
-    _ => Error("Wrong number of arguments for 'def'".to_string()),
+  } else {
+    Error(format!(
+      "Wrong number of arguments for 'def': was expecing 2, found {}",
+      arguments.len()
+    ))
   }
 }
 
-pub fn function(list: List, _variables: &VarTable) -> Atom {
-  match list.tail.as_slice() {
-    [Identifier(name), Vector(parameters), atom] => {
-      let function = Atom::new_function(parameters, atom);
+pub fn function(mut arguments: Vec<Atom>, _variables: &VarTable) -> Atom {
+  if arguments.len() == 3 {
+    if let Identifier(name) = arguments.remove(0) {
+      if !is_builtin(name.as_str()) {
+        if let Vector(parameters) = arguments.remove(0) {
+          let function = Atom::new_function(parameters, arguments.remove(0));
 
-      VariableInsertion(name.clone(), Box::new(function))
+          if function.is_error() {
+            function
+          } else {
+            VariableInsertion(name, Box::new(function))
+          }
+        } else {
+          Error("Second argument of 'defn' must be a vector of identifiers.".to_string())
+        }
+      } else {
+        Error(format!(
+          "Cannot define '{}' as a function, as it's the name of a built-in",
+          name
+        ))
+      }
+    } else {
+      Error("First argument of 'defn' must be a identifier.".to_string())
     }
-    _ => Error("Wrong number of arguments for 'defn'".to_string()),
+  } else {
+    Error(format!(
+      "Wrong number of arguments for 'defn': was expecing 2, found {}",
+      arguments.len()
+    ))
   }
 }
 
-pub fn anonymous_function(list: List, _variables: &VarTable) -> Atom {
-  match list.tail.as_slice() {
-    [Vector(parameters), atom] => Atom::new_function(parameters, atom),
-    _ => Error("Wrong type of arguments for 'fn'".to_string()),
+pub fn anonymous_function(mut arguments: Vec<Atom>, _variables: &VarTable) -> Atom {
+  if arguments.len() == 2 {
+    if let Vector(parameters) = arguments.remove(0) {
+      Atom::new_function(parameters, arguments.remove(0))
+    } else {
+      Error("Second argument of 'defn' must be a list of identifiers.".to_string())
+    }
+  } else {
+    Error(format!(
+      "Wrong number of arguments for 'fn': was expecing 2, found {}",
+      arguments.len()
+    ))
   }
 }
 
-pub fn local_variables(list: List, variables: &VarTable) -> Atom {
-  match list.tail.as_slice() {
+pub fn local_variables(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+  match arguments.as_slice() {
     [Vector(vars), atom] => {
       let mut pairs = vars.chunks_exact(2);
 

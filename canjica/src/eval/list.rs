@@ -1,25 +1,23 @@
 use pipoquinha::parser::atom::Atom::{self, *};
 use pipoquinha::parser::list::List;
 
-use super::{
-  arithmetic, boolean, comparison, conditional, definition, function, io, special, vector,
-};
+use super::{arithmetic, boolean, comparison, definition, function, io, special, vector};
 use crate::{eval, VarTable};
 
 pub fn execute(list: List, variables: &VarTable) -> Atom {
   let fun_name = &list.head;
   match fun_name {
     Some(Identifier(x)) => match x.as_str() {
-      "+" => arithmetic::add(list, variables),
-      "-" => arithmetic::subtract(list, variables),
-      "*" => arithmetic::multiply(list, variables),
-      "/" => arithmetic::divide(list, variables),
-      "=" => comparison::eq(list, variables),
-      "def" => definition::variable(list, variables),
-      "defn" => definition::function(list, variables),
-      "fn" => definition::anonymous_function(list, variables),
-      "let" => definition::local_variables(list, variables),
-      "if" => conditional::if_fun(list.tail, variables),
+      "+" => arithmetic::add(list.tail, variables),
+      "-" => arithmetic::subtract(list.tail, variables),
+      "*" => arithmetic::multiply(list.tail, variables),
+      "/" => arithmetic::divide(list.tail, variables),
+      "=" => comparison::eq(list.tail, variables),
+      "def" => definition::variable(list.tail, variables),
+      "defn" => definition::function(list.tail, variables),
+      "fn" => definition::anonymous_function(list.tail, variables),
+      "let" => definition::local_variables(list.tail, variables),
+      "if" => special::if_fun(list.tail, variables),
       "print" => io::print(list.tail, variables),
       "do" => special::do_function(list.tail, variables),
       "not" => boolean::not(list.tail, variables),
@@ -33,15 +31,16 @@ pub fn execute(list: List, variables: &VarTable) -> Atom {
       "cdr" => cdr(list.tail, variables),
       _ => function::execute(list, variables),
     },
+    Some(e @ Error(_)) => e.clone(),
+    Some(h) => Error(format!("{} cannot be executed, as it's not a function.", h)),
     None => Nil,
-    _ => Error("Cannot eval non-function value.".to_string()),
   }
 }
 
 fn cons(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
   if arguments.len() == 2 {
     let new_head = eval(arguments.remove(0), variables);
-    
+
     let target = arguments.remove(0);
 
     if let List(t) = eval(target, variables) {
