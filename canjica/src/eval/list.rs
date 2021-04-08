@@ -2,50 +2,103 @@ use pipoquinha::parser::atom::Atom::{self, *};
 use pipoquinha::parser::list::List;
 
 use super::{arithmetic, boolean, comparison, definition, function, io, special, vector};
-use crate::{eval, VarTable};
+use crate::{eval, NamespaceTable, VarTable};
 
-pub fn execute(list: List, variables: &VarTable) -> Atom {
-  let fun_name = &list.head;
+pub fn execute(
+  mut list: List,
+  namespace_variables: NamespaceTable,
+  local_variables: &VarTable,
+) -> Atom {
+  let fun_name = list.head;
   match fun_name {
     Some(Identifier(x)) => match x.as_str() {
-      "+" => arithmetic::add(list.tail, variables),
-      "-" => arithmetic::subtract(list.tail, variables),
-      "*" => arithmetic::multiply(list.tail, variables),
-      "/" => arithmetic::divide(list.tail, variables),
-      "=" => comparison::eq(list.tail, variables),
-      "def" => definition::variable(list.tail, variables),
-      "defn" => definition::function(list.tail, variables),
-      "fn" => definition::anonymous_function(list.tail, variables),
-      "let" => definition::local_variables(list.tail, variables),
-      "if" => special::if_fun(list.tail, variables),
+      "+" => arithmetic::add(list.tail, namespace_variables, local_variables),
+      "-" => arithmetic::subtract(list.tail, namespace_variables, local_variables),
+      "*" => arithmetic::multiply(list.tail, namespace_variables, local_variables),
+      "/" => arithmetic::divide(list.tail, namespace_variables, local_variables),
+      "=" => comparison::eq(list.tail, namespace_variables, local_variables),
+      "def" => definition::variable(list.tail, namespace_variables, local_variables),
+      "defn" => definition::function(list.tail, namespace_variables, local_variables),
+      "fn" => definition::anonymous_function(list.tail, namespace_variables, local_variables),
+      "let" => definition::local_variables(list.tail, namespace_variables, local_variables),
+      "if" => special::if_fun(list.tail, namespace_variables, local_variables),
       "read" => io::read(list.tail),
-      "eval" => eval_list(list.tail, variables),
-      "print" => io::print(list.tail, variables),
-      "loop" => special::loop_function(list.tail, variables),
-      "do" => special::do_function(list.tail, variables),
-      "not" => boolean::not(list.tail, variables),
-      "head" => vector::head(list.tail, variables),
-      "tail" => vector::tail(list.tail, variables),
-      "concat" => vector::concatenate(list.tail, variables),
-      "cons" => cons(list.tail, variables),
-      "make-list" => make_list(list.tail, variables),
-      "car" => car(list.tail, variables),
-      "cdr" => cdr(list.tail, variables),
-      _ => function::execute(list, variables),
+      "eval" => {
+        if list.tail.len() == 1 {
+          eval_list(list.tail.remove(0), namespace_variables, local_variables)
+        } else {
+          Error(format!(
+            "Wrong number of arguments for 'eval': was expecting 1, found {}",
+            list.tail.len()
+          ))
+        }
+      }
+      "print" => io::print(list.tail, namespace_variables, local_variables),
+      "loop" => special::loop_function(list.tail, namespace_variables, local_variables),
+      "do" => special::do_function(list.tail, namespace_variables, local_variables),
+      "not" => boolean::not(list.tail, namespace_variables, local_variables),
+      "head" => vector::head(list.tail, namespace_variables, local_variables),
+      "tail" => vector::tail(list.tail, namespace_variables, local_variables),
+      "concat" => vector::concatenate(list.tail, namespace_variables, local_variables),
+      "cons" => cons(list.tail, namespace_variables, local_variables),
+      "make-list" => make_list(list.tail, namespace_variables, local_variables),
+      "car" => car(list.tail, namespace_variables, local_variables),
+      "cdr" => cdr(list.tail, namespace_variables, local_variables),
+      name => {
+        let namespace_vars = namespace_variables.clone();
+        let variables = namespace_vars.borrow();
+        let item = variables.get(name);
+
+        drop(variables);
+
+        match item {
+          Some(Function(function)) => function::execute(
+            *function.clone(),
+            list.tail,
+            namespace_variables,
+            local_variables,
+          ),
+          Some(_) => Error(format!("Cannot invoke {}, as it's not a function", name)),
+          None => Error(format!("Undefined function: {}", name)),
+        }
+      }
     },
-    Some(e @ Error(_)) => e.clone(),
-    Some(h) => Error(format!("{} cannot be executed, as it's not a function.", h)),
+    Some(Function(f)) => function::execute(*f, list.tail, namespace_variables, local_variables),
+    Some(List(l)) => {
+      let h = execute(*l, namespace_variables.clone(), local_variables);
+      let new_list = List {
+        head: Some(h),
+        tail: list.tail,
+      };
+
+      execute(new_list, namespace_variables, local_variables)
+    }
+    Some(e @ Error(_)) => e,
+    Some(value) => Error(format!("Cannot invoke {}, as it's not a function", value)),
     None => Nil,
   }
 }
 
-fn cons(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+fn cons(
+  mut arguments: Vec<Atom>,
+  namespace_variables: NamespaceTable,
+  local_variables: &VarTable,
+) -> Atom {
   if arguments.len() == 2 {
-    let new_head = eval(arguments.remove(0), variables);
-
+    let new_head = eval(
+      arguments.remove(0),
+      namespace_variables.clone(),
+      local_variables,
+    );
     let target = arguments.remove(0);
 
-    if let List(t) = eval(target, variables) {
+    println!("{:?}", local_variables);
+
+    let x =  eval(target, namespace_variables, local_variables);
+
+    println!("{:?}", x);
+
+    if let List(t) = x {
       List(Box::new(t.prepend(new_head)))
     } else {
       Error("Cannot cons into non-list value".to_string())
@@ -61,10 +114,14 @@ fn cons(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
   }
 }
 
-fn make_list(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+fn make_list(
+  mut arguments: Vec<Atom>,
+  namespace_variables: NamespaceTable,
+  local_variables: &VarTable,
+) -> Atom {
   if arguments.len() == 1 || arguments.len() == 2 {
     match (
-      eval(arguments.remove(0), variables),
+      eval(arguments.remove(0), namespace_variables, local_variables),
       arguments.get(0).unwrap_or(&Nil),
     ) {
       (Number(x), value) => List(Box::new(List::from_vec(vec![value.clone(); x as usize]))),
@@ -78,40 +135,24 @@ fn make_list(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
   }
 }
 
-fn eval_list(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
-  if arguments.len() == 1 {
-    match arguments.remove(0) {
-      id @ Identifier(_) => {
-        let mut atom = eval(id, variables);
+fn eval_list(atom: Atom, namespace_variables: NamespaceTable, local_variables: &VarTable) -> Atom {
+  match atom {
+    a @ Identifier(_) | a @ List(_) | a @ UnappliedList(_) => {
+      let value = eval(a, namespace_variables.clone(), local_variables);
 
-        while let l @ List(_) = atom {
-          atom = eval(l, variables);
-        }
-
-        atom
-      }
-      l @ List(_) => {
-        let mut atom = l;
-
-        while let l @ List(_) = atom {
-          atom = eval(l, variables);
-        }
-
-        atom
-      }
-      x => x,
+      eval_list(value, namespace_variables, local_variables)
     }
-  } else {
-    Error(format!(
-      "Wrong number of arguments for 'eval': was expecting 1, found {}",
-      arguments.len()
-    ))
+    x => eval(x, namespace_variables, local_variables),
   }
 }
 
-fn car(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+fn car(
+  mut arguments: Vec<Atom>,
+  namespace_variables: NamespaceTable,
+  local_variables: &VarTable,
+) -> Atom {
   if arguments.len() == 1 {
-    match eval(arguments.remove(0), variables) {
+    match eval(arguments.remove(0), namespace_variables, local_variables) {
       List(l) => l.head.unwrap_or(Nil),
       _ => {
         Error("Wrong type of arguments for 'car': it can only be applied into lists".to_string())
@@ -125,9 +166,13 @@ fn car(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
   }
 }
 
-fn cdr(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+fn cdr(
+  mut arguments: Vec<Atom>,
+  namespace_variables: NamespaceTable,
+  local_variables: &VarTable,
+) -> Atom {
   if arguments.len() == 1 {
-    match eval(arguments.remove(0), variables) {
+    match eval(arguments.remove(0), namespace_variables, local_variables) {
       List(l) => List(Box::new(List::from_vec(l.tail))),
       _ => {
         Error("Wrong type of arguments for 'car': it can only be applied into lists".to_string())

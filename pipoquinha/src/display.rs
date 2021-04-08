@@ -39,7 +39,6 @@ impl Display for Atom {
         write!(f, "{}", text)
       }
       UnappliedList(l) => write!(f, "Unapplied: {:?}", l),
-      VariableInsertion(name, _) => write!(f, "Inserted: #{}", name),
       Str(string) => write!(f, "\"{}\"", string),
       Nil => write!(f, "Nil"),
     }

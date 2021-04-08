@@ -1,7 +1,7 @@
-use std::{collections::HashMap, env, thread};
+use std::{env, thread};
 
-use canjica::{eval, VarTable};
-use pipoquinha::parser::{atom::Atom, file::file};
+use canjica::{Table, NamespaceTable};
+use pipoquinha::parser::file::file;
 mod file_interpreter;
 mod repl;
 
@@ -9,47 +9,38 @@ const STACK_SIZE: usize = 4 * 1024 * 1024;
 
 macro_rules! include_bytes_array {
   ($( $files:literal ),+) => {
-    [$(include_bytes!($files).to_vec()),+].to_vec()
+    [$(include_bytes!($files).to_vec()),+]
   }
 }
 
-fn load_builtins() -> VarTable {
-  let mut table = HashMap::new();
-
+fn initialize_var_table() -> NamespaceTable {
   let folder = include_bytes_array!(
     "std/math.milho",
     "std/io.milho",
     "std/vector.milho",
-    "std/list.milho"
+    "std/list.milho",
+    "std/comparison.milho"
   );
 
-  for code_file in folder.iter() {
-    let instructions = file().parse(code_file.as_slice()).unwrap();
+  let stdlib = folder
+    .iter()
+    .flat_map(|code_file| file().parse(code_file.as_slice()).unwrap())
+    .collect();
 
-    for instruction in instructions {
-      match eval(instruction, &table) {
-        Atom::VariableInsertion(name, value) => {
-          table.insert(name, *value);
-        }
-        _ => (),
-      }
-    }
-  }
-
-  table
+  Table::initialize(stdlib)
 }
 
 fn main() {
-  let built_ins = load_builtins();
-
   let child = thread::Builder::new()
     .stack_size(STACK_SIZE)
     .spawn(|| {
+      let var_table = initialize_var_table();
+
       let args: Vec<String> = env::args().collect();
 
       match args.get(1).map(|arg| arg.as_str()) {
-        Some("repl") => repl::start(built_ins),
-        Some(path) => file_interpreter::start(path),
+        Some("repl") => repl::start(var_table),
+        Some(path) => file_interpreter::start(path, var_table),
         _ => (),
       }
     })

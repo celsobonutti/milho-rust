@@ -81,7 +81,7 @@ mod tests {
     let variables = vec![Identifier(String::from("x")), Identifier(String::from("y"))];
     let head = Some(Identifier(String::from("defn")));
     let function_name = Identifier(String::from("add"));
-    let parameters = Vector(variables.clone());
+    let parameters = Vector(namespace_variables, local_variables);
     let expression = Box::new(List {
       head: Some(Identifier(String::from("+"))),
       tail: variables,
@@ -128,7 +128,7 @@ mod tests {
       Identifier(String::from("var-two")),
     ];
     let head = Some(Identifier(String::from("fn")));
-    let parameters = Vector(variables.clone());
+    let parameters = Vector(namespace_variables, local_variables);
     let expression = List(Box::new(List {
       head: Some(Identifier(String::from("/"))),
       tail: variables,

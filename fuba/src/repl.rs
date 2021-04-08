@@ -1,12 +1,9 @@
 use std::{collections::HashMap, io};
 
-use canjica::{eval, VarTable};
-use pipoquinha::parser::atom::{atom, Atom};
+use canjica::{eval, NamespaceTable};
+use pipoquinha::parser::atom::atom;
 
-pub fn start(built_ins: VarTable) {
-  let mut table: VarTable = HashMap::new();
-  table.extend(built_ins);
-
+pub fn start(var_table: NamespaceTable) {
   println!("Welcome to the 🌽 repl!\n");
 
   loop {
@@ -18,12 +15,7 @@ pub fn start(built_ins: VarTable) {
     io::stdin().read_line(&mut input).unwrap();
 
     match atom().parse(input.as_bytes()) {
-      Ok(atom) => match eval(atom, &table) {
-        Atom::VariableInsertion(name, value) => {
-          println!("🍿> #{}", name);
-
-          table.insert(name, *value);
-        }
+      Ok(atom) => match eval(atom, var_table.clone(), &HashMap::new()) {
         v => println!("🍿> {}", v),
       },
       Err(reason) => {

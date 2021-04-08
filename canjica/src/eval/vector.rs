@@ -1,10 +1,10 @@
 use pipoquinha::parser::atom::Atom;
 
-use crate::{eval, VarTable};
+use crate::{eval, NamespaceTable, VarTable};
 
-pub fn head(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+pub fn head(arguments: Vec<Atom>, namespace_variables: NamespaceTable, local_variables: &VarTable) -> Atom {
   if arguments.len() == 1 {
-    match eval(arguments.into_iter().next().unwrap(), variables) {
+    match eval(arguments.into_iter().next().unwrap(), namespace_variables, local_variables) {
       Atom::Vector(v) => v.into_iter().next().unwrap_or(Atom::Error(
         "Cannot get the head of an empty list".to_string(),
       )),
@@ -19,9 +19,9 @@ pub fn head(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
   }
 }
 
-pub fn tail(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+pub fn tail(arguments: Vec<Atom>, namespace_variables: NamespaceTable, local_variables: &VarTable) -> Atom {
   if arguments.len() == 1 {
-    match eval(arguments.into_iter().next().unwrap(), variables) {
+    match eval(arguments.into_iter().next().unwrap(), namespace_variables, local_variables) {
       Atom::Vector(v) => {
         let mut iter = v.into_iter();
         iter.next();
@@ -41,11 +41,11 @@ pub fn tail(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
   }
 }
 
-pub fn concatenate(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+pub fn concatenate(arguments: Vec<Atom>, namespace_variables: NamespaceTable, local_variables: &VarTable) -> Atom {
   let mut result = Vec::new();
 
   for item in arguments {
-    if let Atom::Vector(v) = eval(item, variables) {
+    if let Atom::Vector(v) = eval(item, namespace_variables.clone(), local_variables) {
         result.extend(v);
     } else {
         return Atom::Error("Cannot concatenate non-vector value".to_string());

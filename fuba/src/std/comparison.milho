@@ -1,0 +1,3 @@
+(defn neq [ x +rest ]
+  (not (eval (cons = (cons x rest))))
+)

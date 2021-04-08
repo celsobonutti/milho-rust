@@ -1,45 +1,61 @@
 use std::collections::HashMap;
 
 use pipoquinha::parser::atom::Atom::{self, *};
+use pipoquinha::parser::atom::Function;
 use pipoquinha::parser::list::List;
 
-use crate::{eval, VarTable};
+use crate::{eval, NamespaceTable, VarTable};
 
-pub fn execute(list: List, variables: &VarTable) -> Atom {
-  if let Some(Identifier(name)) = &list.head {
-    if let Some(Function(function)) = variables.get(name) {
-      if function.param_len() == list.tail.len() {
-        let function = function.clone();
+pub fn execute(
+  mut function: Function,
+  mut arguments: Vec<Atom>,
+  namespace_variables: NamespaceTable,
+  local_variables: &VarTable,
+) -> Atom {
+  if function.param_len() == arguments.len() && !function.variadic {
+    let mut new_local = HashMap::new();
 
-        let mut local_table = HashMap::new();
+    new_local.extend(local_variables.clone());
 
-        local_table.extend(variables.clone());
+    function
+      .parameters
+      .into_iter()
+      .zip(arguments.into_iter())
+      .for_each(|(key, value)| {
+        new_local.insert(key, value);
+      });
 
-        function
-          .parameters
-          .into_iter()
-          .zip(list.tail.into_iter())
-          .for_each(|(key, value)| {
-            local_table.insert(key, eval(value, variables));
-          });
+    eval(function.atom, namespace_variables, &new_local)
+  } else if function.variadic {
+    if arguments.len() >= function.param_len() - 1 {
+      let mut new_local = HashMap::new();
 
-        eval(function.atom, &mut local_table)
-      } else {
-        Error(format!(
-          "Wrong number of arguments for {}: expected {}, got {})",
-          name,
-          function.param_len(),
-          list.tail.len()
-        ))
+      new_local.extend(local_variables.clone());
+
+      for _ in 1..function.param_len() {
+        new_local.insert(function.parameters.remove(0), arguments.remove(0));
       }
-    } else if let Some(l@List(_)) = variables.get(name) {
-        eval(l.clone(), variables)
-    } else if let Some(_) = variables.get(name) {
-      Error(format!("Cannot invoke {}, as it's not a function", name))
+
+      new_local.insert(
+        function.parameters.remove(0),
+        Atom::List(Box::new(List::from_vec(arguments))),
+      );
+
+      println!("{:?}", new_local);
+
+      eval(function.atom, namespace_variables, &new_local)
     } else {
-      Error(format!("Undefined function: {}", name))
+      Error(format!(
+        "Wrong number of arguments for function: expected at least {}, got {}",
+        function.param_len() - 1,
+        arguments.len()
+      ))
     }
   } else {
-    Error("Cannot invoke this, as it's not a function".to_string())
+    Error(format!(
+      "Wrong number of arguments for function: expected {}, got {})",
+      function.param_len(),
+      arguments.len()
+    ))
   }
 }

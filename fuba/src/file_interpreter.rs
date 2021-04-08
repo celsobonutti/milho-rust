@@ -1,23 +1,17 @@
-use std::collections::HashMap;
 use std::fs::read;
+use std::collections::HashMap;
 
-use canjica::{eval, VarTable};
-use pipoquinha::parser::atom::Atom;
+use canjica::{eval, NamespaceTable};
 use pipoquinha::parser::file::file;
 
-pub fn start(path: &str) {
+pub fn start(path: &str, var_table: NamespaceTable) {
   let code = read(path).unwrap();
   let instructions = file().parse(code.as_slice());
 
   match instructions {
     Ok(instructions) => {
-      let mut table: VarTable = HashMap::new();
-
       for instruction in instructions {
-        match eval(instruction, &table) {
-          Atom::VariableInsertion(name, value) => {
-            table.insert(name, *value);
-          }
+        match eval(instruction, var_table.clone(), &HashMap::new()) {
           result => {
             println!("{}", result);
           }

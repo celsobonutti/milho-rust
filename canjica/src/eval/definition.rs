@@ -5,15 +5,27 @@ use pipoquinha::parser::{
   identifier::is_builtin,
 };
 
-use crate::{eval, VarTable};
+use crate::{eval, NamespaceTable, VarTable};
 
-pub fn variable(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+pub fn variable(
+  mut arguments: Vec<Atom>,
+  namespace_variables: NamespaceTable,
+  local_variables: &VarTable,
+) -> Atom {
   if arguments.len() == 2 {
     if let Identifier(name) = arguments.remove(0) {
       if !is_builtin(name.as_str()) {
-        let value = eval(arguments.remove(0), variables);
+        let namespace_vars = namespace_variables.clone();
 
-        VariableInsertion(name, Box::new(value))
+        let value = eval(arguments.remove(0), namespace_variables, local_variables);
+
+        let mut mutable_namespace = namespace_vars.borrow_mut();
+
+        mutable_namespace.insert_module(name.clone(), value);
+
+        drop(mutable_namespace);
+
+        Identifier(name)
       } else {
         Error(format!(
           "Cannot define '{}' as a variable, as it's the name of a built-in",
@@ -31,7 +43,11 @@ pub fn variable(mut arguments: Vec<Atom>, variables: &VarTable) -> Atom {
   }
 }
 
-pub fn function(mut arguments: Vec<Atom>, _variables: &VarTable) -> Atom {
+pub fn function(
+  mut arguments: Vec<Atom>,
+  namespace_variables: NamespaceTable,
+  _local_variables: &VarTable,
+) -> Atom {
   if arguments.len() == 3 {
     if let Identifier(name) = arguments.remove(0) {
       if !is_builtin(name.as_str()) {
@@ -41,7 +57,15 @@ pub fn function(mut arguments: Vec<Atom>, _variables: &VarTable) -> Atom {
           if function.is_error() {
             function
           } else {
-            VariableInsertion(name, Box::new(function))
+            let namespace_vars = namespace_variables.clone();
+
+            let mut mutable_namespace = namespace_vars.borrow_mut();
+
+            mutable_namespace.insert_module(name.clone(), function);
+
+            drop(mutable_namespace);
+
+            Identifier(name)
           }
         } else {
           Error("Second argument of 'defn' must be a vector of identifiers.".to_string())
@@ -63,12 +87,16 @@ pub fn function(mut arguments: Vec<Atom>, _variables: &VarTable) -> Atom {
   }
 }
 
-pub fn anonymous_function(mut arguments: Vec<Atom>, _variables: &VarTable) -> Atom {
+pub fn anonymous_function(
+  mut arguments: Vec<Atom>,
+  _namespace_variables: NamespaceTable,
+  _local_variables: &VarTable,
+) -> Atom {
   if arguments.len() == 2 {
     if let Vector(parameters) = arguments.remove(0) {
       Atom::new_function(parameters, arguments.remove(0))
     } else {
-      Error("Second argument of 'defn' must be a list of identifiers.".to_string())
+      Error("Second argument of 'fn' must be a list of identifiers.".to_string())
     }
   } else {
     Error(format!(
@@ -78,18 +106,22 @@ pub fn anonymous_function(mut arguments: Vec<Atom>, _variables: &VarTable) -> At
   }
 }
 
-pub fn local_variables(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
-  match arguments.as_slice() {
-    [Vector(vars), atom] => {
-      let mut pairs = vars.chunks_exact(2);
+pub fn local_variables(
+  mut arguments: Vec<Atom>,
+  namespace_variables: NamespaceTable,
+  local_variables: &VarTable,
+) -> Atom {
+  if arguments.len() == 2 {
+    if let Vector(vars) = arguments.remove(0) {
+      let mut pairs = vars.chunks_exact(2).into_iter();
 
-      let mut local_table: VarTable = HashMap::new();
+      let mut args = HashMap::new();
 
-      local_table.extend(variables.clone());
+      args.extend(local_variables.clone());
 
       while let Some([key, value]) = pairs.next() {
         if let Identifier(name) = key {
-          local_table.insert(name.clone(), eval(value.clone(), &local_table));
+          args.insert(name.clone(), value.clone());
         } else {
           return Error("Something is wrong. Looks like one of your variables is not using an identifier as its name.".to_string());
         }
@@ -100,10 +132,21 @@ pub fn local_variables(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
           "Something is wrong. Looks like we have an odd number of values in the key-value vector."
             .to_string(),
         );
-      }
+      } else {
+        let result = eval(arguments.remove(0), namespace_variables, &args);
 
-      eval(atom.clone(), &local_table)
+        result
+      }
+    } else {
+      return Error(
+        "Wrong argument type for let: its first argument needs to be a vector of key-value pairs"
+          .to_string(),
+      );
     }
-    _ => Error("Wrong number of arguments for let".to_string()),
+  } else {
+    Error(format!(
+      "Wrong number of arguments for 'let': expecting 2, found {}",
+      arguments.len()
+    ))
   }
 }

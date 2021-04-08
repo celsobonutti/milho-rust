@@ -1,11 +1,11 @@
 use std::io;
 
-use crate::{eval, VarTable};
+use crate::{eval, NamespaceTable, VarTable};
 use pipoquinha::parser::atom::{atom, Atom};
 
-pub fn print(arguments: Vec<Atom>, variables: &VarTable) -> Atom {
+pub fn print(arguments: Vec<Atom>, namespace_variables: NamespaceTable, local_variables: &VarTable) -> Atom {
   for (index, item) in arguments.into_iter().enumerate() {
-    match eval(item, variables) {
+    match eval(item, namespace_variables.clone(), local_variables) {
       Atom::Str(string) => {
         if index == 0 {
           print!("{}", string);

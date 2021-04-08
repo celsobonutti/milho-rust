@@ -14,26 +14,31 @@ use pipoquinha::parser::{
   identifier::is_builtin,
 };
 
-use super::VarTable;
+use super::{NamespaceTable, VarTable};
 
-pub fn eval(atom: Atom, variables: &VarTable) -> Atom {
+pub fn eval(atom: Atom, namespace_variables: NamespaceTable, local_variables: &VarTable) -> Atom {
   match atom {
     Identifier(id) if is_builtin(id.as_str()) => Identifier(id),
     Identifier(id) => {
-      if let Some(value) = variables.get(id.as_str()) {
+      if let Some(value) = local_variables.get(id.as_str()) {
+        value.clone()
+      } else if let Some(value) = namespace_variables.clone().borrow().get(id.as_str()) {
         value.clone()
       } else {
         Error(format!("Undefined variable: {}", id))
       }
     }
-    List(l) => list::execute(*l, variables),
+    List(l) => list::execute(*l, namespace_variables, local_variables),
     UnappliedList(l) => List(l),
-    Vector(l) => Vector(l.into_iter().map(|item| eval(item, variables)).collect()),
+    Vector(l) => Vector(
+      l.into_iter()
+        .map(|item| eval(item, namespace_variables.clone(), local_variables))
+        .collect(),
+    ),
     f @ Function(_) => f,
     n @ Number(_) => n,
     b @ Bool(_) => b,
     e @ Error(_) => e,
-    v @ VariableInsertion(_, _) => v,
     s @ Str(_) => s,
     Nil => Nil,
   }

@@ -3,7 +3,8 @@ use std::str::from_utf8;
 use pom::char_class::*;
 use pom::parser::*;
 
-const BUILT_IN_FUNCTIONS: [&str; 26] = [
+const BUILT_IN_FUNCTIONS: [&str; 27] = [
+  "+rest",
   "/=",
   ">=",
   "<=",

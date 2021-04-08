@@ -12,6 +12,7 @@ use super::vector::*;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Function {
   pub parameters: Vec<String>,
+  pub variadic: bool,
   pub atom: Atom,
 }
 
@@ -31,7 +32,6 @@ pub enum Atom {
   Vector(Vector),
   Identifier(String),
   Function(Box<Function>),
-  VariableInsertion(String, Box<Atom>),
   Str(String),
   Nil,
 }
@@ -53,21 +53,43 @@ pub fn atom<'a>() -> Parser<'a, u8, Atom> {
 
 impl Atom {
   pub fn new_function(parameters: Vec<Atom>, atom: Atom) -> Self {
+    let variadic_identifier = Self::Identifier("+rest".to_string());
+    let is_variadic = parameters
+      .iter()
+      .position(|item| item == &variadic_identifier);
+
     if parameters.iter().all(|item| item.is_identifier()) {
       let params = parameters
         .into_iter()
         .filter_map(|value| {
           if let Self::Identifier(id) = value {
-            Some(id)
+            if id == "+rest" {
+              Some("rest".to_string())
+            } else {
+              Some(id)
+            }
           } else {
             None
           }
         })
-        .collect();
+        .collect::<Vec<String>>();
+
+      if let Some(index) = is_variadic {
+        if index == params.len() - 1 {
+          return Self::Function(Box::new(Function {
+            parameters: params,
+            atom,
+            variadic: true,
+          }));
+        } else {
+          return Self::Error("+rest is a reserved identifier for variadics, and should only be placed at the end of your parameters".to_string());
+        }
+      }
 
       Self::Function(Box::new(Function {
         parameters: params,
         atom,
+        variadic: false,
       }))
     } else {
       Self::Error("Every argument in a function must be a identifier".to_string())

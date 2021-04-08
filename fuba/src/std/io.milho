@@ -1,6 +1,6 @@
-(defn println [x]
+(defn println [+rest]
   (do
-    (print x)
+    (eval (cons print rest))
     (print "\n")
   )
 ) 
