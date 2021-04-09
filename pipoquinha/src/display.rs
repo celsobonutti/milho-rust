@@ -10,9 +10,13 @@ impl Display for Atom {
       Bool(Boolean::False) => write!(f, "False"),
       Bool(Boolean::True) => write!(f, "True"),
       Vector(vector) => {
-        let mut text = String::from("[ ");
-        for item in vector {
-          text.push_str(&format!("{} ", *item));
+        let mut text = String::from("[");
+        for (index, item) in vector.into_iter().enumerate() {
+          if index == 0 {
+            text.push_str(&format!("{}", *item));
+          } else {
+            text.push_str(&format!(" {}", *item));
+          }
         }
         text.push(']');
         write!(f, "{}", text)
@@ -23,22 +27,25 @@ impl Display for Atom {
       Identifier(i) => write!(f, "{}", i),
       Function(fun) => write!(f, "fn#{}", fun.param_len()),
       List(l) => {
-        let mut text = String::from("( ");
+        let mut text = String::from("(");
 
         let list = l.clone();
 
         if l.head.is_some() {
           text.push_str(&format!("{} ", list.head.unwrap()));
 
-          for item in list.tail {
-            text.push_str(&format!("{} ", item));
+          for (index, item) in list.tail.into_iter().enumerate() {
+            if index == 0 {
+              text.push_str(&format!("{}", item));
+            } else {
+              text.push_str(&format!(" {}", item));
+            }
           }
         }
 
         text.push(')');
         write!(f, "{}", text)
       }
-      UnappliedList(l) => write!(f, "Unapplied: {:?}", l),
       Str(string) => write!(f, "\"{}\"", string),
       Nil => write!(f, "Nil"),
     }

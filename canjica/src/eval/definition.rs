@@ -121,7 +121,10 @@ pub fn local_variables(
 
       while let Some([key, value]) = pairs.next() {
         if let Identifier(name) = key {
-          args.insert(name.clone(), value.clone());
+          args.insert(
+            name.clone(),
+            eval(value.clone(), namespace_variables.clone(), &args),
+          );
         } else {
           return Error("Something is wrong. Looks like one of your variables is not using an identifier as its name.".to_string());
         }
@@ -133,9 +136,7 @@ pub fn local_variables(
             .to_string(),
         );
       } else {
-        let result = eval(arguments.remove(0), namespace_variables, &args);
-
-        result
+        eval(arguments.remove(0), namespace_variables, &args)
       }
     } else {
       return Error(

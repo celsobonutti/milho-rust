@@ -25,7 +25,15 @@ pub fn execute(
       "read" => io::read(list.tail),
       "eval" => {
         if list.tail.len() == 1 {
-          eval_list(list.tail.remove(0), namespace_variables, local_variables)
+          eval(
+            eval(
+              list.tail.remove(0),
+              namespace_variables.clone(),
+              local_variables,
+            ),
+            namespace_variables,
+            local_variables,
+          )
         } else {
           Error(format!(
             "Wrong number of arguments for 'eval': was expecting 1, found {}",
@@ -44,6 +52,16 @@ pub fn execute(
       "make-list" => make_list(list.tail, namespace_variables, local_variables),
       "car" => car(list.tail, namespace_variables, local_variables),
       "cdr" => cdr(list.tail, namespace_variables, local_variables),
+      "quote" => {
+        if list.tail.len() == 1 {
+          list.tail.remove(0)
+        } else {
+          Error(format!(
+            "Wrong number of arguments for 'quote': was expecting 1, found {}",
+            list.tail.len()
+          ))
+        }
+      }
       name => {
         let namespace_vars = namespace_variables.clone();
         let variables = namespace_vars.borrow();
@@ -92,11 +110,7 @@ fn cons(
     );
     let target = arguments.remove(0);
 
-    println!("{:?}", local_variables);
-
-    let x =  eval(target, namespace_variables, local_variables);
-
-    println!("{:?}", x);
+    let x = eval(target, namespace_variables, local_variables);
 
     if let List(t) = x {
       List(Box::new(t.prepend(new_head)))
@@ -132,17 +146,6 @@ fn make_list(
       "Wrong number of arguments for 'make_list': was expecing 1 or 2, found {}",
       arguments.len()
     ))
-  }
-}
-
-fn eval_list(atom: Atom, namespace_variables: NamespaceTable, local_variables: &VarTable) -> Atom {
-  match atom {
-    a @ Identifier(_) | a @ List(_) | a @ UnappliedList(_) => {
-      let value = eval(a, namespace_variables.clone(), local_variables);
-
-      eval_list(value, namespace_variables, local_variables)
-    }
-    x => eval(x, namespace_variables, local_variables),
   }
 }
 

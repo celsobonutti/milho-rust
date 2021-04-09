@@ -20,7 +20,11 @@ pub fn execute(
     function
       .parameters
       .into_iter()
-      .zip(arguments.into_iter())
+      .zip(
+        arguments
+          .into_iter()
+          .map(|atom| eval(atom, namespace_variables.clone(), local_variables)),
+      )
       .for_each(|(key, value)| {
         new_local.insert(key, value);
       });
@@ -33,15 +37,25 @@ pub fn execute(
       new_local.extend(local_variables.clone());
 
       for _ in 1..function.param_len() {
-        new_local.insert(function.parameters.remove(0), arguments.remove(0));
+        new_local.insert(
+          function.parameters.remove(0),
+          eval(
+            arguments.remove(0),
+            namespace_variables.clone(),
+            local_variables,
+          ),
+        );
       }
 
       new_local.insert(
         function.parameters.remove(0),
-        Atom::List(Box::new(List::from_vec(arguments))),
+        Atom::List(Box::new(List::from_vec(
+          arguments
+            .into_iter()
+            .map(|atom| eval(atom, namespace_variables.clone(), local_variables))
+            .collect(),
+        ))),
       );
-
-      println!("{:?}", new_local);
 
       eval(function.atom, namespace_variables, &new_local)
     } else {

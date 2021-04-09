@@ -18,10 +18,11 @@ use super::{NamespaceTable, VarTable};
 
 pub fn eval(atom: Atom, namespace_variables: NamespaceTable, local_variables: &VarTable) -> Atom {
   match atom {
-    Identifier(id) if is_builtin(id.as_str()) => Identifier(id),
     Identifier(id) => {
       if let Some(value) = local_variables.get(id.as_str()) {
         value.clone()
+      } else if is_builtin(id.as_str()) {
+        Identifier(id)
       } else if let Some(value) = namespace_variables.clone().borrow().get(id.as_str()) {
         value.clone()
       } else {
@@ -29,7 +30,6 @@ pub fn eval(atom: Atom, namespace_variables: NamespaceTable, local_variables: &V
       }
     }
     List(l) => list::execute(*l, namespace_variables, local_variables),
-    UnappliedList(l) => List(l),
     Vector(l) => Vector(
       l.into_iter()
         .map(|item| eval(item, namespace_variables.clone(), local_variables))

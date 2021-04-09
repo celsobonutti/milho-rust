@@ -8,6 +8,8 @@ use super::list::{list_parser, List};
 use super::number::*;
 use super::string::*;
 use super::vector::*;
+use crate::id;
+use crate::list;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Function {
@@ -25,7 +27,6 @@ impl Function {
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Atom {
   List(Box<List>),
-  UnappliedList(Box<List>),
   Number(i64),
   Bool(Boolean),
   Error(String),
@@ -37,18 +38,22 @@ pub enum Atom {
 }
 
 pub fn atom<'a>() -> Parser<'a, u8, Atom> {
-  number().map(Atom::Number)
-    | boolean().map(Atom::Bool)
-    | string().map(Atom::Str)
-    | call(list_parser).map(|(is_applied, l)| {
-      if is_applied {
-        Atom::List(Box::new(l))
-      } else {
-        Atom::UnappliedList(Box::new(l))
-      }
-    })
-    | call(vector).map(Atom::Vector)
-    | call(internal_identifier).map(Atom::Identifier)
+  (sym(b'\'').opt()
+    + (seq(b"Nil").map(|_| Atom::Nil)
+      | number().map(Atom::Number)
+      | boolean().map(Atom::Bool)
+      | string().map(Atom::Str)
+      | call(list_parser).map(|l| Atom::List(Box::new(l)))
+      | call(vector).map(Atom::Vector)
+      | call(internal_identifier).map(Atom::Identifier)))
+  .name("Atom")
+  .map(|(is_quoted, atom)| {
+    if is_quoted.is_some() {
+      Atom::List(Box::new(list![id!("quote"), atom]))
+    } else {
+      atom
+    }
+  })
 }
 
 impl Atom {

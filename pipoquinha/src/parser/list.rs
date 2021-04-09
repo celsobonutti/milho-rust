@@ -9,29 +9,10 @@ pub struct List {
   pub tail: Vec<Atom>,
 }
 
-pub fn list_parser<'a>() -> Parser<'a, u8, (bool, List)> {
-  let parser = sym(b'\'').opt() + sym(b'(') * space().opt() * list(atom(), space())
-    - space().opt()
-    - sym(b')');
+pub fn list_parser<'a>() -> Parser<'a, u8, List> {
+  let parser = sym(b'(') * space().opt() * list(atom(), space()) - space().opt() - sym(b')');
 
-  parser
-    .map(|(quote, l)| {
-      let list = match l.split_first() {
-        None => List {
-          head: None,
-          tail: vec![],
-        },
-        Some((head, tail)) => List {
-          head: Some(head.clone()),
-          tail: Vec::from(tail),
-        },
-      };
-
-      let is_applied = quote.is_none();
-
-      (is_applied, list)
-    })
-    .name("List")
+  parser.map(List::from_vec).name("List")
 }
 
 #[cfg(test)]
@@ -46,13 +27,10 @@ mod tests {
 
     assert_eq!(
       output,
-      Ok((
-        true,
-        List {
-          head: Some(Identifier(String::from("+"))),
-          tail: vec![Number(3), Number(3), Number(4)]
-        }
-      ))
+      Ok(List {
+        head: Some(Identifier(String::from("+"))),
+        tail: vec![Number(3), Number(3), Number(4)]
+      })
     );
   }
 
@@ -60,16 +38,13 @@ mod tests {
   fn parse_sum_within_sum() {
     let input = b"(+ 3 (+ 5 3))";
     let output = list_parser().parse(input);
-    let (_, internal_sum) = list_parser().parse(b"(+ 5 3)").unwrap();
+    let internal_sum = list_parser().parse(b"(+ 5 3)").unwrap();
 
     assert_eq!(
-      Ok((
-        true,
-        List {
-          head: Some(Identifier(String::from("+"))),
-          tail: vec![Number(3), List(Box::new(internal_sum))]
-        }
-      )),
+      Ok(List {
+        head: Some(Identifier(String::from("+"))),
+        tail: vec![Number(3), List(Box::new(internal_sum))]
+      }),
       output
     )
   }
@@ -81,20 +56,17 @@ mod tests {
     let variables = vec![Identifier(String::from("x")), Identifier(String::from("y"))];
     let head = Some(Identifier(String::from("defn")));
     let function_name = Identifier(String::from("add"));
-    let parameters = Vector(namespace_variables, local_variables);
+    let parameters = Vector(variables.clone());
     let expression = Box::new(List {
       head: Some(Identifier(String::from("+"))),
       tail: variables,
     });
 
     assert_eq!(
-      Ok((
-        true,
-        List {
-          head,
-          tail: vec![function_name, parameters, List(expression)]
-        }
-      )),
+      Ok(List {
+        head,
+        tail: vec![function_name, parameters, List(expression)]
+      }),
       list_parser().parse(input)
     )
   }
@@ -108,13 +80,10 @@ mod tests {
     let value = Number(250);
 
     assert_eq!(
-      Ok((
-        true,
-        List {
-          head,
-          tail: vec![var_name, value]
-        }
-      )),
+      Ok(List {
+        head,
+        tail: vec![var_name, value]
+      }),
       list_parser().parse(input)
     );
   }
@@ -128,20 +97,17 @@ mod tests {
       Identifier(String::from("var-two")),
     ];
     let head = Some(Identifier(String::from("fn")));
-    let parameters = Vector(namespace_variables, local_variables);
+    let parameters = Vector(variables.clone());
     let expression = List(Box::new(List {
       head: Some(Identifier(String::from("/"))),
       tail: variables,
     }));
 
     assert_eq!(
-      Ok((
-        true,
-        List {
-          head,
-          tail: vec![parameters, expression]
-        }
-      )),
+      Ok(List {
+        head,
+        tail: vec![parameters, expression]
+      }),
       list_parser().parse(input)
     );
   }
@@ -167,13 +133,10 @@ mod tests {
     });
 
     assert_eq!(
-      Ok((
-        true,
-        List {
-          head,
-          tail: vec![local_variables, List(expression)]
-        }
-      )),
+      Ok(List {
+        head,
+        tail: vec![local_variables, List(expression)]
+      }),
       list_parser().parse(input)
     );
   }
@@ -183,13 +146,10 @@ mod tests {
     let input = b"()";
 
     assert_eq!(
-      Ok((
-        true,
-        List {
-          head: None,
-          tail: vec![]
-        }
-      )),
+      Ok(List {
+        head: None,
+        tail: vec![]
+      }),
       list_parser().parse(input)
     );
   }
