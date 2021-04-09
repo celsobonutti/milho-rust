@@ -5,16 +5,16 @@
   )
 )
 
-(defn append-list [ list1 list2 ]
-  ( let 
-    [ hd (car list1) tl (cdr list1) ]
-    ( if (= hd Nil)
+(defn append-list [list1 list2]
+  (let 
+    [hd (car list1) tl (cdr list1)]
+    (if (= hd Nil)
       list2
       (cons hd (append-list tl list2))
     )
   )
 )
 
-(defn list [ +rest ]
+(defn list [+rest]
   rest
 )

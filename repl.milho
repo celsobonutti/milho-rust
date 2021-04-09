@@ -1,1 +1,10 @@
-(loop (print (eval (read))))
+( do
+  (println "Welcome to the 🌽 repl, now written in milho!")
+  (println)
+  (loop
+    (do
+      (print "🌽> ")
+      (println "🍿>" (eval (read)))
+    )
+  )
+)
