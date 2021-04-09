@@ -1,12 +1,8 @@
-(defn cons [ h t ]
-  (concat [h] t)
-)
-
 (defn map [ f l ]
   (if (= l [])
     []
     (let [ h (head l) t (tail l) ]
-      (cons (f h) (map f t))
+      (concat [(f h)] (map f t))
     )
   )
 )
@@ -16,7 +12,7 @@
     []
     (let [ h (head l) t (tail l) ]
       (if (f h)
-        (cons h (filter f t))
+        (concat [h] (filter f t))
         (filter f t)
       )
     )

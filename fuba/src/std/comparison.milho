@@ -1,3 +1,3 @@
 (defn neq [ x +rest ]
-  (not (eval (cons = (cons x rest))))
+  (not (eval (append-list '(= x) rest)))
 )
