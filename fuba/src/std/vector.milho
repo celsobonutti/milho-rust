@@ -1,4 +1,4 @@
-(defn map [ f l ]
+(defn vec_map [ f l ]
   (if (= l [])
     []
     (let [ h (head l) t (tail l) ]
@@ -7,7 +7,7 @@
   )
 )
 
-(defn filter [ f l ]
+(defn vec_filter [ f l ]
   (if (= l [])
     []
     (let [ h (head l) t (tail l) ]
@@ -19,7 +19,7 @@
   )
 )
 
-(defn foldl [ f acc l ]
+(defn vec_foldl [ f acc l ]
   (if (= l [])
     acc
     (let [ h (head l) t (tail l) ]

@@ -26,6 +26,7 @@ impl Display for Atom {
       }
       Identifier(i) => write!(f, "{}", i),
       Function(fun) => write!(f, "fn#{}", fun.param_len()),
+      MultiArityFn(_funs) => write!(f, "multi-arity-function"),
       List(l) => {
         let mut text = String::from("(");
 
@@ -47,6 +48,7 @@ impl Display for Atom {
         write!(f, "{}", text)
       }
       Str(string) => write!(f, "\"{}\"", string),
+      BuiltIn(string) => write!(f, "built-in{}", string),
       Nil => write!(f, "Nil"),
     }
   }

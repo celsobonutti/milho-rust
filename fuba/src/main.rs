@@ -1,7 +1,7 @@
 use std::{env, thread};
 
 use canjica::{Table, NamespaceTable};
-use pipoquinha::parser::file::file;
+use pipoquinha::parser::file;
 mod file_interpreter;
 mod repl;
 
@@ -24,7 +24,7 @@ fn initialize_var_table() -> NamespaceTable {
 
   let stdlib = folder
     .iter()
-    .flat_map(|code_file| file().parse(code_file.as_slice()).unwrap())
+    .flat_map(|code_file| file::parser().parse(code_file.as_slice()).unwrap())
     .collect();
 
   Table::initialize(stdlib)

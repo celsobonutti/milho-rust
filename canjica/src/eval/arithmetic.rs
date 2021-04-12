@@ -13,6 +13,20 @@ pub fn add(
     .fold(Number(0), |acc, val| acc.add(&val))
 }
 
+pub fn negate(
+  mut arguments: Vec<Atom>,
+  namespace_variables: NamespaceTable,
+  local_variables: &VarTable,
+) -> Atom {
+  match arguments.as_slice() {
+    [_] => eval(arguments.remove(0), namespace_variables, local_variables).negate(),
+    _ => Error(format!(
+      "Wrong number of arguments for 'negate': was expecing 1, found {}",
+      arguments.len()
+    )),
+  }
+}
+
 pub fn subtract(
   arguments: Vec<Atom>,
   namespace_variables: NamespaceTable,

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use pipoquinha::parser::{
   atom::Atom::{self, *},
-  identifier::is_builtin,
+  list::List,
 };
 
 use crate::{eval, NamespaceTable, VarTable};
@@ -14,24 +14,17 @@ pub fn variable(
 ) -> Atom {
   if arguments.len() == 2 {
     if let Identifier(name) = arguments.remove(0) {
-      if !is_builtin(name.as_str()) {
-        let namespace_vars = namespace_variables.clone();
+      let namespace_vars = namespace_variables.clone();
 
-        let value = eval(arguments.remove(0), namespace_variables, local_variables);
+      let value = eval(arguments.remove(0), namespace_variables, local_variables);
 
-        let mut mutable_namespace = namespace_vars.borrow_mut();
+      let mut mutable_namespace = namespace_vars.borrow_mut();
 
-        mutable_namespace.insert_module(name.clone(), value);
+      mutable_namespace.insert_module(name.clone(), value);
 
-        drop(mutable_namespace);
+      drop(mutable_namespace);
 
-        Identifier(name)
-      } else {
-        Error(format!(
-          "Cannot define '{}' as a variable, as it's the name of a built-in",
-          name
-        ))
-      }
+      Identifier(name)
     } else {
       Error("First argument of 'def' must be a identifier.".to_string())
     }
@@ -48,42 +41,96 @@ pub fn function(
   namespace_variables: NamespaceTable,
   _local_variables: &VarTable,
 ) -> Atom {
-  if arguments.len() == 3 {
-    if let Identifier(name) = arguments.remove(0) {
-      if !is_builtin(name.as_str()) {
-        if let Vector(parameters) = arguments.remove(0) {
-          let function = Atom::new_function(parameters, arguments.remove(0));
+  match arguments.as_slice() {
+    [Identifier(_name), Vector(parameters), _]
+      if parameters.iter().all(|atom| atom.is_identifier()) =>
+    {
+      let name = arguments.remove(0).unwrap_id();
+      let parameters = arguments.remove(0).unwrap_vector();
 
-          if function.is_error() {
-            function
-          } else {
+      let function = Atom::new_function(parameters, arguments.remove(0));
+
+      if function.is_error() {
+        function
+      } else {
+        let namespace_vars = namespace_variables.clone();
+
+        let mut mutable_namespace = namespace_vars.borrow_mut();
+
+        mutable_namespace.insert_module(name.clone(), function);
+
+        drop(mutable_namespace);
+
+        Identifier(name)
+      }
+    }
+    [Identifier(name), Vector(_parameters), _] => Error(format!(
+      "Cannot define '{}' as a function, as it's the name of a built-in",
+      name
+    )),
+    [Identifier(_name), bodies @ ..]
+      if bodies.len() > 0 && bodies.iter().all(|l| l.is_list()) =>
+    {
+      let name = arguments.remove(0).unwrap_id();
+      let bodies = arguments;
+      let mut has_variadic_shown_up = false;
+      let result =
+        bodies
+          .into_iter()
+          .fold(MultiArityFn(Box::new(vec![])), |acc, body| match acc {
+            e @ Error(_) => e,
+            MultiArityFn(mut v) => match body {
+              List(l) => match *l {
+                List {
+                  head: Some(Vector(items)),
+                  mut tail,
+                } if items.iter().all(|item| item.is_identifier()) && tail.len() == 1 => {
+                  match Atom::new_function(items, tail.remove(0)) {
+                    e @ Error(_) => e,
+                    Function(new_function) => {
+                      if v.iter().any(|f| f.param_len() == new_function.param_len() && f.variadic == new_function.variadic) {
+                        return Error("Can't have two bodies with the same arity.".to_string())
+                      } else if has_variadic_shown_up && new_function.variadic {
+                        return Error("Can't have two variadic bodies for the same function.".to_string());
+                      } else {
+                        if new_function.variadic { 
+                          has_variadic_shown_up = true;
+                        }
+
+                       v.push(*new_function);
+                       MultiArityFn(v)  
+                      }
+                    }
+                    x => x,
+                  }
+                }
+                _ => Error("Wrong type of argument for multi-arity functions: all bodies need to be a list composed of a vector with identifiers followed by only one expression".to_string())
+              },
+              x => x,
+            },
+            x => x,
+          });
+
+      match result {
+        e@Error(_) => e,
+        fns@MultiArityFn(_) => {
             let namespace_vars = namespace_variables.clone();
-
+            
             let mut mutable_namespace = namespace_vars.borrow_mut();
 
-            mutable_namespace.insert_module(name.clone(), function);
+            mutable_namespace.insert_module(name.clone(), fns);
 
             drop(mutable_namespace);
 
             Identifier(name)
-          }
-        } else {
-          Error("Second argument of 'defn' must be a vector of identifiers.".to_string())
-        }
-      } else {
-        Error(format!(
-          "Cannot define '{}' as a function, as it's the name of a built-in",
-          name
-        ))
+        },
+        buggy => Error(format!("Something is wrong: was expecting the value to be a MultiArityFunction, but it is: {}", buggy))
       }
-    } else {
-      Error("First argument of 'defn' must be a identifier.".to_string())
     }
-  } else {
-    Error(format!(
-      "Wrong number of arguments for 'defn': was expecing 2, found {}",
+    _ => Error(format!(
+      "Wrong number of arguments for 'defn': was expecing 3, found {}",
       arguments.len()
-    ))
+    )),
   }
 }
 

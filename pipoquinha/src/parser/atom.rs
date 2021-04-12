@@ -2,14 +2,11 @@ extern crate pom;
 
 use pom::parser::*;
 
-use super::boolean::*;
-use super::identifier::*;
-use super::list::{list_parser, List};
-use super::number::*;
-use super::string::*;
-use super::vector::*;
-use crate::id;
-use crate::list;
+use super::{boolean, built_in, identifier, list as list_p, number, string, vector};
+use super::list::List;
+use super::vector::Vector;
+use super::boolean::Boolean;
+use crate::{list, id};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Function {
@@ -33,19 +30,22 @@ pub enum Atom {
   Vector(Vector),
   Identifier(String),
   Function(Box<Function>),
+  MultiArityFn(Box<Vec<Function>>),
   Str(String),
+  BuiltIn(String),
   Nil,
 }
 
 pub fn atom<'a>() -> Parser<'a, u8, Atom> {
   (sym(b'\'').opt()
     + (seq(b"Nil").map(|_| Atom::Nil)
-      | number().map(Atom::Number)
-      | boolean().map(Atom::Bool)
-      | string().map(Atom::Str)
-      | call(list_parser).map(|l| Atom::List(Box::new(l)))
-      | call(vector).map(Atom::Vector)
-      | call(internal_identifier).map(Atom::Identifier)))
+      | number::parser().map(Atom::Number)
+      | boolean::parser().map(Atom::Bool)
+      | string::parser().map(Atom::Str)
+      | built_in::parser().map(Atom::BuiltIn)
+      | call(list_p::parser).map(|l| Atom::List(Box::new(l)))
+      | call(vector::parser).map(Atom::Vector)
+      | call(identifier::parser).map(Atom::Identifier)))
   .name("Atom")
   .map(|(is_quoted, atom)| {
     if is_quoted.is_some() {
@@ -101,6 +101,14 @@ impl Atom {
     }
   }
 
+  pub fn is_list(&self) -> bool {
+    if let Atom::List(_) = self {
+      true
+    } else {
+      false
+    }
+  }
+
   pub fn is_vector(&self) -> bool {
     if let Atom::Vector(_) = self {
       true
@@ -109,11 +117,27 @@ impl Atom {
     }
   }
 
+  pub fn unwrap_vector(self) -> Vec<Atom> {
+    if let Atom::Vector(v) = self {
+      v
+    } else {
+      panic!("Trying to unwrap a vector from a non-vector atom");
+    }
+  }
+
   pub fn is_identifier(&self) -> bool {
     if let Atom::Identifier(_) = self {
       true
     } else {
       false
+    }
+  }
+
+  pub fn unwrap_id(self) -> String {
+    if let Atom::Identifier(id) = self {
+      id
+    } else {
+      panic!("Trying to unwrap an id from a non-identifier atom");
     }
   }
 

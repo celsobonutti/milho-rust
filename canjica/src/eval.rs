@@ -9,10 +9,7 @@ mod special;
 mod string;
 mod vector;
 
-use pipoquinha::parser::{
-  atom::Atom::{self, *},
-  identifier::is_builtin,
-};
+use pipoquinha::parser::atom::Atom::{self, *};
 
 use super::{NamespaceTable, VarTable};
 
@@ -21,8 +18,6 @@ pub fn eval(atom: Atom, namespace_variables: NamespaceTable, local_variables: &V
     Identifier(id) => {
       if let Some(value) = local_variables.get(id.as_str()) {
         value.clone()
-      } else if is_builtin(id.as_str()) {
-        Identifier(id)
       } else if let Some(value) = namespace_variables.clone().borrow().get(id.as_str()) {
         value.clone()
       } else {
@@ -36,10 +31,12 @@ pub fn eval(atom: Atom, namespace_variables: NamespaceTable, local_variables: &V
         .collect(),
     ),
     f @ Function(_) => f,
+    maf @ MultiArityFn(_) => maf,
     n @ Number(_) => n,
     b @ Bool(_) => b,
     e @ Error(_) => e,
     s @ Str(_) => s,
+    b @ BuiltIn(_) => b,
     Nil => Nil,
   }
 }

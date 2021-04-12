@@ -6,7 +6,7 @@ pub enum Boolean {
   False
 }
 
-pub fn boolean<'a>() -> Parser<'a, u8, Boolean> {
+pub fn parser<'a>() -> Parser<'a, u8, Boolean> {
   let b_true = (seq(b"True") | seq(b"Real")).map(|_| Boolean::True);
   let b_false = (seq(b"False") | seq(b"Feiki")).map(|_| Boolean::False);
   
@@ -23,7 +23,7 @@ pub fn negate(b: Boolean) -> Boolean {
 #[test]
 fn parse_true() {
     let input = b"True";
-    let output = boolean().parse(input);
+    let output = parser().parse(input);
 
     assert_eq!(output, Ok(Boolean::True))
 }
@@ -31,7 +31,7 @@ fn parse_true() {
 #[test]
 fn parse_false() {
     let input = b"False";
-    let output = boolean().parse(input);
+    let output = parser().parse(input);
 
     assert_eq!(output, Ok(Boolean::False))
 }

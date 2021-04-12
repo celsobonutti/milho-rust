@@ -6,6 +6,21 @@ use pipoquinha::parser::list::List;
 
 use crate::{eval, NamespaceTable, VarTable};
 
+pub fn multi_arity_function(
+  mut functions: Vec<Function>,
+  arguments: Vec<Atom>,
+  namespace_variables: NamespaceTable,
+  local_variables: &VarTable,
+) -> Atom {
+    if let Some(index) = functions.iter().position(|function| function.param_len() == arguments.len() && !function.variadic) {
+       execute(functions.remove(index), arguments, namespace_variables, local_variables)
+    } else if let Some(index) = functions.iter().position(|function| function.variadic && arguments.len() >= function.param_len() - 1) { 
+       execute(functions.remove(index), arguments, namespace_variables, local_variables)
+    } else {
+       Error("Wrong number of arguments for function".to_string())
+    }
+}
+
 pub fn execute(
   mut function: Function,
   mut arguments: Vec<Atom>,

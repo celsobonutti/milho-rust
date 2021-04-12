@@ -2,7 +2,7 @@ extern crate pom;
 use pom::parser::*;
 use std::str;
 
-pub fn number<'a>() -> Parser<'a, u8, i64> {
+pub fn parser<'a>() -> Parser<'a, u8, i64> {
   let sign = sym(b'-').opt();
   let number = one_of(b"1234567890").repeat(1..);
 
@@ -18,7 +18,7 @@ pub fn number<'a>() -> Parser<'a, u8, i64> {
 #[test]
 fn parse_positive_number() {
   let input = b"1995";
-  let output = number().parse(input);
+  let output = parser().parse(input);
 
   assert_eq!(output, Ok(1995));
 }
@@ -26,7 +26,7 @@ fn parse_positive_number() {
 #[test]
 fn parse_negative_number() {
   let input = b"-1995";
-  let output = number().parse(input);
+  let output = parser().parse(input);
 
   assert_eq!(output, Ok(-1995));
 }
@@ -34,7 +34,7 @@ fn parse_negative_number() {
 #[test]
 fn parse_garbage_number() {
   let input = b"19-95";
-  let output = number().parse(input);
+  let output = parser().parse(input);
 
   assert_eq!(output, Ok(19));
 }

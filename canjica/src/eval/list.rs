@@ -16,6 +16,7 @@ pub fn execute(
       "-" => arithmetic::subtract(list.tail, namespace_variables, local_variables),
       "*" => arithmetic::multiply(list.tail, namespace_variables, local_variables),
       "/" => arithmetic::divide(list.tail, namespace_variables, local_variables),
+      "negate" => arithmetic::negate(list.tail, namespace_variables, local_variables),
       "=" => comparison::eq(list.tail, namespace_variables, local_variables),
       "def" => definition::variable(list.tail, namespace_variables, local_variables),
       "defn" => definition::function(list.tail, namespace_variables, local_variables),
@@ -63,21 +64,20 @@ pub fn execute(
         }
       }
       name => {
-        let namespace_vars = namespace_variables.clone();
-        let variables = namespace_vars.borrow();
-        let item = variables.get(name);
-
-        drop(variables);
+        let item = eval(Identifier(name.to_string()), namespace_variables.clone(), local_variables);
 
         match item {
-          Some(Function(function)) => function::execute(
+          Function(function) => function::execute(
             *function.clone(),
             list.tail,
             namespace_variables,
             local_variables,
           ),
-          Some(_) => Error(format!("Cannot invoke {}, as it's not a function", name)),
-          None => Error(format!("Undefined function: {}", name)),
+          MultiArityFn(functions) => {
+            function::multi_arity_function(*functions.clone(), list.tail, namespace_variables, local_variables)
+          }
+          e@Error(_) => e,
+          _ => Error(format!("Cannot invoke {}, as it's not a function", name)),
         }
       }
     },

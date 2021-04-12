@@ -7,7 +7,7 @@ use super::space::*;
 
 pub type Vector = Vec<Atom>;
 
-pub fn vector<'a>() -> Parser<'a, u8, Vector> {
+pub fn parser<'a>() -> Parser<'a, u8, Vector> {
   sym(b'[') * space().opt() * list(atom(), space())
     - space().opt()
     - sym(b']')
@@ -22,7 +22,7 @@ mod tests {
   #[test]
   fn parse_number_vector() {
     let input = b"[ 1 2 3 ]";
-    let output = vector().parse(input);
+    let output = parser().parse(input);
 
     assert_eq!(Ok(vec![Number(1), Number(2), Number(3)]), output);
   }
@@ -30,7 +30,7 @@ mod tests {
   #[test]
   fn parse_multi_type_vector() {
     let input = b"[ 1 True 25 ]";
-    let output = vector().parse(input);
+    let output = parser().parse(input);
 
     assert_eq!(Ok(vec![Number(1), Bool(True), Number(25)]), output)
   }
@@ -38,14 +38,14 @@ mod tests {
   #[test]
   fn parse_vectors_without_optional_spaces() {
     let input = b"[1 True]";
-    let output = vector().parse(input);
+    let output = parser().parse(input);
     assert_eq!(Ok(vec![Number(1), Bool(True)]), output)
   }
 
   #[test]
   fn parse_empty_vector() {
     let input = b"[]";
-    let output = vector().parse(input);
+    let output = parser().parse(input);
     assert_eq!(Ok(vec![]), output);
   }
 }

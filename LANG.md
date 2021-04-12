@@ -19,21 +19,33 @@ False ;; false
 ```clojure
 "Strings are written with double quotes."
 ```
-* Error
+* Nil
 ```clojure
-(make-error 404 "Not found");; Erros cannot be created out of nowhere. You can, though, create your own errors using the make-error builtin
-(make-error "oops, I broke" 20);; Notice that the first argument needs to be a number, and the second, a string. Otherwise you'll get an error, but not the one you're expecting. :p
+Nil ;;
+```
+* Identitifer
+```clojure
+memes ;; Identifiers are defined like this
+<oi> ;; they can start with anything you want, except numbers
+m3M3$_irados ;; after that, they can hold pretty much anything
+```
+* Lists
+```clojure
+'(2 3) ;; Lists are defined by putting anything between parenthesis.
+(+ 2 3) => 5;; When you evaluate a list, it runs the first element as a function with the remaining elements as arguments.
+(cons + '(2 3)) ;; We have all of your typical LISP list functions
+() ;; Empty spaces evaluate to Nil
 ```
 * Vector
 ```clojure
 [ "hello" "my" "kind" "stranger" ", don't you have something better to do?" ] ;; Vectors are declared with brackets and spaces between elements (yup, no commas)
 [ 5 "years" ] ;; They can hold multiple data types
-(: 25 [ "years" ]) ;; And you can prepend to their head like this
-(++ [ "years" ] [ 25 ]) ;; And concatenated them like this
+(concat [ "years" ] [ 25 ]) ;; You can concatenate them like this
 ```
-* Nil
+* Error
 ```clojure
-Nil ;;
+(make-error 404 "Not found");; Erros cannot be created out of nowhere. You can, though, create your own errors using the make-error builtin
+(make-error "oops, I broke" 20);; Notice that the first argument needs to be a number, and the second, a string. Otherwise you'll get an error, but not the one you're expecting. :p
 ```
 
 ## Defining your things :P
@@ -41,6 +53,9 @@ Nil ;;
 ```clojure
 (def a 5) ;; Variables are declared with the def built-in
 (def things-i-like [ "memes" "basimga" "xd" ]) ;; And they can hold pretty much everything ;)
+
+(let [x 2 y 5] (sub x y)) ;; Local variables are defined like this.
+=> -3 This odd positions are the identifiers, the even are the values.
 ```
 * ### Functions
 ```clojure
@@ -49,6 +64,13 @@ Nil ;;
   [ a b ]  ;; the second one is a vector with the name of your parameters  
   (+ a b)  ;; and the third is your function per se
 ) 
+
+(defn sub ;; You can define multi-arity functions like this.
+  ([ x ] (negate x)) ;; And then your function will work according to the number of parameters
+  ([ x +rest ] (append-list (+ x) (map negate rest))) ;; They can even be variadics
+) ;; But be careful: you can only have one body per number of params, and one variadic
+
+(fn [ x ] (* 2 x)) ;; Anonymous functions are defined like this
 ```
 
 ## Dealing with errors

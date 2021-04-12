@@ -9,7 +9,7 @@ pub struct List {
   pub tail: Vec<Atom>,
 }
 
-pub fn list_parser<'a>() -> Parser<'a, u8, List> {
+pub fn parser<'a>() -> Parser<'a, u8, List> {
   let parser = sym(b'(') * space().opt() * list(atom(), space()) - space().opt() - sym(b')');
 
   parser.map(List::from_vec).name("List")
@@ -17,13 +17,13 @@ pub fn list_parser<'a>() -> Parser<'a, u8, List> {
 
 #[cfg(test)]
 mod tests {
-  use super::{list_parser, List};
+  use super::{parser, List};
   use crate::parser::atom::Atom::*;
 
   #[test]
-  fn parse_sum_list_parser() {
+  fn parse_sum_parser() {
     let input = b"(+ 3 3 4)";
-    let output = list_parser().parse(input);
+    let output = parser().parse(input);
 
     assert_eq!(
       output,
@@ -37,8 +37,8 @@ mod tests {
   #[test]
   fn parse_sum_within_sum() {
     let input = b"(+ 3 (+ 5 3))";
-    let output = list_parser().parse(input);
-    let internal_sum = list_parser().parse(b"(+ 5 3)").unwrap();
+    let output = parser().parse(input);
+    let internal_sum = parser().parse(b"(+ 5 3)").unwrap();
 
     assert_eq!(
       Ok(List {
@@ -67,7 +67,7 @@ mod tests {
         head,
         tail: vec![function_name, parameters, List(expression)]
       }),
-      list_parser().parse(input)
+      parser().parse(input)
     )
   }
 
@@ -84,7 +84,7 @@ mod tests {
         head,
         tail: vec![var_name, value]
       }),
-      list_parser().parse(input)
+      parser().parse(input)
     );
   }
 
@@ -108,7 +108,7 @@ mod tests {
         head,
         tail: vec![parameters, expression]
       }),
-      list_parser().parse(input)
+      parser().parse(input)
     );
   }
 
@@ -137,7 +137,7 @@ mod tests {
         head,
         tail: vec![local_variables, List(expression)]
       }),
-      list_parser().parse(input)
+      parser().parse(input)
     );
   }
 
@@ -150,7 +150,7 @@ mod tests {
         head: None,
         tail: vec![]
       }),
-      list_parser().parse(input)
+      parser().parse(input)
     );
   }
 }

@@ -18,3 +18,10 @@
 (defn list [+rest]
   rest
 )
+
+(defn map [ f l ]
+  (if (= l '())
+    '()
+    (cons ((eval f) (car l)) (map (eval f) (cdr l)))
+  )
+)

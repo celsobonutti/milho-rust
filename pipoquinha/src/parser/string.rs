@@ -1,6 +1,6 @@
 use pom::parser::*;
 
-pub fn string<'a>() -> Parser<'a, u8, String> {
+pub fn parser<'a>() -> Parser<'a, u8, String> {
   let special_char = sym(b'\\')
     | sym(b'/')
     | sym(b'"')
@@ -25,13 +25,13 @@ mod tests {
   fn simple_string() {
     let input = b"\"memes\"";
 
-    assert_eq!(Ok("memes".to_string()), string().parse(input))
+    assert_eq!(Ok("memes".to_string()), parser().parse(input))
   }
 
   #[test]
   fn empty_string() {
     let input = b"\"\"";
 
-    assert_eq!(Ok("".to_string()), string().parse(input))
+    assert_eq!(Ok("".to_string()), parser().parse(input))
   }
 }
