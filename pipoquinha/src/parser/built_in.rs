@@ -2,7 +2,7 @@ use std::str::from_utf8;
 
 use pom::parser::*;
 
-pub const BUILT_INS: [&[u8]; 24] = [
+pub const BUILT_INS: [&[u8]; 25] = [
   b".__add__",
   b".__mul__",
   b".__div__",
@@ -10,6 +10,7 @@ pub const BUILT_INS: [&[u8]; 24] = [
   b".__eq__",
   b".__def__",
   b".__defn__",
+  b".__defmacro__",
   b".__fn__",
   b".__let__",
   b".__if__",

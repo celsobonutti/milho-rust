@@ -1,5 +1,6 @@
 (.__def__ def .__def__)
 (def defn .__defn__)
+(def defmacro .__defmacro__)
 (def + .__add__)
 (def * .__mul__)
 (def / .__div__)

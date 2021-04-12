@@ -31,6 +31,7 @@ pub fn eval(atom: Atom, namespace_variables: NamespaceTable, local_variables: &V
         .collect(),
     ),
     f @ Function(_) => f,
+    m @ Macro(_) => m,
     maf @ MultiArityFn(_) => maf,
     n @ Number(_) => n,
     b @ Bool(_) => b,

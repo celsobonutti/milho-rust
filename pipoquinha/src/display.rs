@@ -26,6 +26,7 @@ impl Display for Atom {
       }
       Identifier(i) => write!(f, "{}", i),
       Function(fun) => write!(f, "fn#{}", fun.param_len()),
+      Macro(m) => write!(f, "macro#{}", m.param_len()),
       MultiArityFn(_funs) => write!(f, "multi-arity-function"),
       List(l) => {
         let mut text = String::from("(");

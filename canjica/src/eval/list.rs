@@ -19,6 +19,7 @@ pub fn execute(
       ".__negate__" => arithmetic::negate(list.tail, namespace_variables, local_variables),
       ".__def__" => definition::variable(list.tail, namespace_variables, local_variables),
       ".__defn__" => definition::function(list.tail, namespace_variables, local_variables),
+      ".__defmacro__" => definition::macro_d(list.tail, namespace_variables, local_variables),
       ".__fn__" => definition::anonymous_function(list.tail, namespace_variables, local_variables),
       ".__let__" => definition::local_variables(list.tail, namespace_variables, local_variables),
       ".__if__" => special::if_fun(list.tail, namespace_variables, local_variables),
@@ -72,10 +73,27 @@ pub fn execute(
       );
 
       match item {
-        b@BuiltIn(_) => execute(List { head: Some(b), tail: list.tail }, namespace_variables, local_variables),
+        b @ BuiltIn(_) => execute(
+          List {
+            head: Some(b),
+            tail: list.tail,
+          },
+          namespace_variables,
+          local_variables,
+        ),
         Function(function) => function::execute(
           *function.clone(),
           list.tail,
+          namespace_variables,
+          local_variables,
+        ),
+        Macro(m) => eval(
+          function::execute_macro(
+            *m.clone(),
+            list.tail,
+            namespace_variables.clone(),
+            local_variables,
+          ),
           namespace_variables,
           local_variables,
         ),

@@ -2,11 +2,11 @@ extern crate pom;
 
 use pom::parser::*;
 
-use super::{boolean, built_in, identifier, list as list_p, number, string, vector};
+use super::boolean::Boolean;
 use super::list::List;
 use super::vector::Vector;
-use super::boolean::Boolean;
-use crate::{list, id};
+use super::{boolean, built_in, identifier, list as list_p, number, string, vector};
+use crate::{id, list};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Function {
@@ -30,6 +30,7 @@ pub enum Atom {
   Vector(Vector),
   Identifier(String),
   Function(Box<Function>),
+  Macro(Box<Function>),
   MultiArityFn(Box<Vec<Function>>),
   Str(String),
   BuiltIn(String),
@@ -57,7 +58,7 @@ pub fn atom<'a>() -> Parser<'a, u8, Atom> {
 }
 
 impl Atom {
-  pub fn new_function(parameters: Vec<Atom>, atom: Atom) -> Self {
+  pub fn new_function(parameters: Vec<Atom>, atom: Atom, is_macro: bool) -> Self {
     let variadic_identifier = Self::Identifier("+rest".to_string());
     let is_variadic = parameters
       .iter()
@@ -81,21 +82,37 @@ impl Atom {
 
       if let Some(index) = is_variadic {
         if index == params.len() - 1 {
-          return Self::Function(Box::new(Function {
-            parameters: params,
-            atom,
-            variadic: true,
-          }));
+          if is_macro {
+            return Self::Macro(Box::new(Function {
+              parameters: params,
+              atom,
+              variadic: true,
+            }));
+          } else {
+            return Self::Function(Box::new(Function {
+              parameters: params,
+              atom,
+              variadic: true,
+            }));
+          }
         } else {
           return Self::Error("+rest is a reserved identifier for variadics, and should only be placed at the end of your parameters".to_string());
         }
       }
 
-      Self::Function(Box::new(Function {
-        parameters: params,
-        atom,
-        variadic: false,
-      }))
+      if is_macro {
+        Self::Macro(Box::new(Function {
+          parameters: params,
+          atom,
+          variadic: false,
+        }))
+      } else {
+        Self::Function(Box::new(Function {
+          parameters: params,
+          atom,
+          variadic: false,
+        }))
+      }
     } else {
       Self::Error("Every argument in a function must be a identifier".to_string())
     }
