@@ -13,3 +13,8 @@
 (defn odd [ x ]
   (not (even x))
 )
+
+(defn -
+  ([x] (negate x))
+  ([x +rest] (eval (append-list '(+ x) (map negate rest))))
+)

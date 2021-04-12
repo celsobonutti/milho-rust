@@ -15,6 +15,7 @@ macro_rules! include_bytes_array {
 
 fn initialize_var_table() -> NamespaceTable {
   let folder = include_bytes_array!(
+    "std/basic.milho",
     "std/math.milho",
     "std/io.milho",
     "std/vector.milho",

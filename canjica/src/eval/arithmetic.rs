@@ -27,24 +27,6 @@ pub fn negate(
   }
 }
 
-pub fn subtract(
-  arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  local_variables: &VarTable,
-) -> Atom {
-  if arguments.len() == 1 {
-    arguments.first().unwrap().negate()
-  } else {
-    arguments
-      .into_iter()
-      .map(|val| eval(val, namespace_variables.clone(), local_variables))
-      .reduce(|acc, val| acc.add(&val.negate()))
-      .unwrap_or(Error(
-        "Wrong number of arguments for '-': was expecting at least 1, found 0".to_string(),
-      ))
-  }
-}
-
 pub fn multiply(
   arguments: Vec<Atom>,
   namespace_variables: NamespaceTable,

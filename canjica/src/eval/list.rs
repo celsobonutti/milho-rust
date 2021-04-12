@@ -11,20 +11,19 @@ pub fn execute(
 ) -> Atom {
   let fun_name = list.head;
   match fun_name {
-    Some(Identifier(x)) => match x.as_str() {
-      "+" => arithmetic::add(list.tail, namespace_variables, local_variables),
-      "-" => arithmetic::subtract(list.tail, namespace_variables, local_variables),
-      "*" => arithmetic::multiply(list.tail, namespace_variables, local_variables),
-      "/" => arithmetic::divide(list.tail, namespace_variables, local_variables),
-      "negate" => arithmetic::negate(list.tail, namespace_variables, local_variables),
-      "=" => comparison::eq(list.tail, namespace_variables, local_variables),
-      "def" => definition::variable(list.tail, namespace_variables, local_variables),
-      "defn" => definition::function(list.tail, namespace_variables, local_variables),
-      "fn" => definition::anonymous_function(list.tail, namespace_variables, local_variables),
-      "let" => definition::local_variables(list.tail, namespace_variables, local_variables),
-      "if" => special::if_fun(list.tail, namespace_variables, local_variables),
-      "read" => io::read(list.tail),
-      "eval" => {
+    Some(BuiltIn(x)) => match x.as_str() {
+      ".__add__" => arithmetic::add(list.tail, namespace_variables, local_variables),
+      ".__mul__" => arithmetic::multiply(list.tail, namespace_variables, local_variables),
+      ".__div__" => arithmetic::divide(list.tail, namespace_variables, local_variables),
+      ".__eq__" => comparison::eq(list.tail, namespace_variables, local_variables),
+      ".__negate__" => arithmetic::negate(list.tail, namespace_variables, local_variables),
+      ".__def__" => definition::variable(list.tail, namespace_variables, local_variables),
+      ".__defn__" => definition::function(list.tail, namespace_variables, local_variables),
+      ".__fn__" => definition::anonymous_function(list.tail, namespace_variables, local_variables),
+      ".__let__" => definition::local_variables(list.tail, namespace_variables, local_variables),
+      ".__if__" => special::if_fun(list.tail, namespace_variables, local_variables),
+      ".__read__" => io::read(list.tail),
+      ".__eval__" => {
         if list.tail.len() == 1 {
           eval(
             eval(
@@ -42,18 +41,18 @@ pub fn execute(
           ))
         }
       }
-      "print" => io::print(list.tail, namespace_variables, local_variables),
-      "loop" => special::loop_function(list.tail, namespace_variables, local_variables),
-      "do" => special::do_function(list.tail, namespace_variables, local_variables),
-      "not" => boolean::not(list.tail, namespace_variables, local_variables),
-      "head" => vector::head(list.tail, namespace_variables, local_variables),
-      "tail" => vector::tail(list.tail, namespace_variables, local_variables),
-      "concat" => vector::concatenate(list.tail, namespace_variables, local_variables),
-      "cons" => cons(list.tail, namespace_variables, local_variables),
-      "make-list" => make_list(list.tail, namespace_variables, local_variables),
-      "car" => car(list.tail, namespace_variables, local_variables),
-      "cdr" => cdr(list.tail, namespace_variables, local_variables),
-      "quote" => {
+      ".__print__" => io::print(list.tail, namespace_variables, local_variables),
+      ".__loop__" => special::loop_function(list.tail, namespace_variables, local_variables),
+      ".__do__" => special::do_function(list.tail, namespace_variables, local_variables),
+      ".__not__" => boolean::not(list.tail, namespace_variables, local_variables),
+      ".__head__" => vector::head(list.tail, namespace_variables, local_variables),
+      ".__tail__" => vector::tail(list.tail, namespace_variables, local_variables),
+      ".__concat__" => vector::concatenate(list.tail, namespace_variables, local_variables),
+      ".__cons__" => cons(list.tail, namespace_variables, local_variables),
+      ".__make-list__" => make_list(list.tail, namespace_variables, local_variables),
+      ".__car__" => car(list.tail, namespace_variables, local_variables),
+      ".__cdr__" => cdr(list.tail, namespace_variables, local_variables),
+      ".__quote__" => {
         if list.tail.len() == 1 {
           list.tail.remove(0)
         } else {
@@ -63,24 +62,33 @@ pub fn execute(
           ))
         }
       }
-      name => {
-        let item = eval(Identifier(name.to_string()), namespace_variables.clone(), local_variables);
-
-        match item {
-          Function(function) => function::execute(
-            *function.clone(),
-            list.tail,
-            namespace_variables,
-            local_variables,
-          ),
-          MultiArityFn(functions) => {
-            function::multi_arity_function(*functions.clone(), list.tail, namespace_variables, local_variables)
-          }
-          e@Error(_) => e,
-          _ => Error(format!("Cannot invoke {}, as it's not a function", name)),
-        }
-      }
+      n => Error(format!("Undefined built-in: {}", n)),
     },
+    Some(Identifier(name)) => {
+      let item = eval(
+        Identifier(name.to_string()),
+        namespace_variables.clone(),
+        local_variables,
+      );
+
+      match item {
+        b@BuiltIn(_) => execute(List { head: Some(b), tail: list.tail }, namespace_variables, local_variables),
+        Function(function) => function::execute(
+          *function.clone(),
+          list.tail,
+          namespace_variables,
+          local_variables,
+        ),
+        MultiArityFn(functions) => function::multi_arity_function(
+          *functions.clone(),
+          list.tail,
+          namespace_variables,
+          local_variables,
+        ),
+        e @ Error(_) => e,
+        _ => Error(format!("Cannot invoke {}, as it's not a function", name)),
+      }
+    }
     Some(Function(f)) => function::execute(*f, list.tail, namespace_variables, local_variables),
     Some(List(l)) => {
       let h = execute(*l, namespace_variables.clone(), local_variables);
