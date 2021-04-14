@@ -18,3 +18,8 @@
   ([x] (negate x))
   ([x +rest] (eval (append-list '(+ x) (map negate rest))))
 )
+
+(defn /
+  ([x] (invert x))
+  ([x +rest] (eval (append-list '(* x) (map invert rest))))
+)

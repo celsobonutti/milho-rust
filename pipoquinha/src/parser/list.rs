@@ -1,6 +1,6 @@
 use pom::parser::*;
 
-use super::atom::{atom, Atom};
+use super::atom::{self, Atom};
 use super::space::space;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -10,7 +10,7 @@ pub struct List {
 }
 
 pub fn parser<'a>() -> Parser<'a, u8, List> {
-  let parser = sym(b'(') * space().opt() * list(atom(), space()) - space().opt() - sym(b')');
+  let parser = sym(b'(') * space().opt() * list(atom::parser(), space()) - space().opt() - sym(b')');
 
   parser.map(List::from_vec).name("List")
 }
@@ -18,7 +18,8 @@ pub fn parser<'a>() -> Parser<'a, u8, List> {
 #[cfg(test)]
 mod tests {
   use super::{parser, List};
-  use crate::parser::atom::Atom::*;
+  use crate::parser::atom::Atom::{self, *};
+  use crate::types::number::Number;
 
   #[test]
   fn parse_sum_parser() {
@@ -29,7 +30,7 @@ mod tests {
       output,
       Ok(List {
         head: Some(Identifier(String::from("+"))),
-        tail: vec![Number(3), Number(3), Number(4)]
+        tail: vec![Atom::Number(Number::new(3, 1).unwrap()), Atom::Number(Number::new(3, 1).unwrap()), Atom::Number(Number::new(4, 1).unwrap())]
       })
     );
   }
@@ -43,7 +44,7 @@ mod tests {
     assert_eq!(
       Ok(List {
         head: Some(Identifier(String::from("+"))),
-        tail: vec![Number(3), List(Box::new(internal_sum))]
+        tail: vec![Atom::Number(Number::new(3, 1).unwrap()), List(Box::new(internal_sum))]
       }),
       output
     )
@@ -77,7 +78,7 @@ mod tests {
 
     let head = Some(Identifier(String::from("def")));
     let var_name = Identifier(String::from("my_variable"));
-    let value = Number(250);
+    let value = Atom::Number(Number::new(250, 1).unwrap());
 
     assert_eq!(
       Ok(List {
@@ -119,16 +120,16 @@ mod tests {
     let head = Some(Identifier(String::from("let")));
     let local_variables = Vector(vec![
       Identifier(String::from("x")),
-      Number(2),
+      Atom::Number(Number::new(2, 1).unwrap()),
       Identifier(String::from("y")),
-      Number(9),
+      Atom::Number(Number::new(9, 1).unwrap()),
     ]);
     let expression = Box::new(List {
       head: Some(Identifier(String::from("*"))),
       tail: vec![
         Identifier(String::from("x")),
         Identifier(String::from("y")),
-        Number(10),
+        Atom::Number(Number::new(10, 1).unwrap()),
       ],
     });
 

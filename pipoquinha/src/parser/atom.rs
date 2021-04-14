@@ -6,7 +6,7 @@ use super::boolean::Boolean;
 use super::list::List;
 use super::vector::Vector;
 use super::{boolean, built_in, identifier, list as list_p, number, string, vector};
-use crate::{id, list};
+use crate::{id, list, types::number::Number};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Function {
@@ -24,7 +24,7 @@ impl Function {
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Atom {
   List(Box<List>),
-  Number(i64),
+  Number(Number),
   Bool(Boolean),
   Error(String),
   Vector(Vector),
@@ -37,10 +37,15 @@ pub enum Atom {
   Nil,
 }
 
-pub fn atom<'a>() -> Parser<'a, u8, Atom> {
+pub fn parser<'a>() -> Parser<'a, u8, Atom> {
   (sym(b'\'').opt()
     + (seq(b"Nil").map(|_| Atom::Nil)
-      | number::parser().map(Atom::Number)
+      | number::parser().map(|v| {
+        v.map_or(
+          Atom::Error("Cannot create numbers with 0 as denominator".to_string()),
+          Atom::Number,
+        )
+      })
       | boolean::parser().map(Atom::Bool)
       | string::parser().map(Atom::Str)
       | built_in::parser().map(Atom::BuiltIn)

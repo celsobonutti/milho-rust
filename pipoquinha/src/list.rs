@@ -99,12 +99,13 @@ macro_rules! list {
 mod tests {
   use super::*;
   use crate::id;
+  use crate::types::number::Number;
 
   #[test]
   fn macro_test() {
     let empty_list = list![];
     let one_item_list = list![id!("+")];
-    let multiple_items_list = list![id!("-"), Atom::Number(5), Atom::Number(4)];
+    let multiple_items_list = list![id!("-"), Atom::Number(Number::new(5, 1).unwrap()), Atom::Number(Number::new(4, 1).unwrap())];
 
     assert_eq!(empty_list.head, None);
     assert_eq!(one_item_list.head, Some(id!("+")));
@@ -112,25 +113,25 @@ mod tests {
     assert_eq!(multiple_items_list.head, Some(id!("-")));
     assert_eq!(
       multiple_items_list.tail,
-      vec![Atom::Number(5), Atom::Number(4)]
+      vec![Atom::Number(Number::new(5, 1).unwrap()), Atom::Number(Number::new(4, 1).unwrap())]
     );
   }
 
   #[test]
   fn prepend() {
-    let l1 = list![Atom::Nil, Atom::Number(5)];
+    let l1 = list![Atom::Nil, Atom::Number(Number::new(5, 1).unwrap())];
     let l2 = l1.prepend(id!("+"));
 
     assert_eq!(l2.head, Some(id!("+")));
-    assert_eq!(l2.tail, vec![Atom::Nil, Atom::Number(5)]);
+    assert_eq!(l2.tail, vec![Atom::Nil, Atom::Number(Number::new(5, 1).unwrap())]);
   }
 
   #[test]
   fn append() {
     let l1 = list![Atom::Nil];
-    let l2 = l1.append(Atom::Number(7));
+    let l2 = l1.append(Atom::Number(Number::new(7, 1).unwrap()));
 
     assert_eq!(l2.head, Some(Atom::Nil));
-    assert_eq!(l2.tail, vec![Atom::Number(7)]);
+    assert_eq!(l2.tail, vec![Atom::Number(Number::new(7, 1).unwrap())]);
   }
 }

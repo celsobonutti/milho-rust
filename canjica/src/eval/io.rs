@@ -1,7 +1,7 @@
 use std::io;
 
 use crate::{NamespaceTable, VarTable};
-use pipoquinha::parser::atom::{atom, Atom};
+use pipoquinha::parser::atom::{self, Atom};
 
 pub fn print(arguments: Vec<Atom>, _namespace_variables: NamespaceTable, _local_variables: &VarTable) -> Atom {
   for (index, item) in arguments.into_iter().enumerate() {
@@ -32,7 +32,7 @@ pub fn read(arguments: Vec<Atom>) -> Atom {
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
 
-    let a = atom().parse(input.as_bytes());
+    let a = atom::parser().parse(input.as_bytes());
 
     match a {
       Err(_) => Atom::Str(input),

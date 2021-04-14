@@ -1,3 +1,15 @@
 (defn neq [ x +rest ]
   (not (eval (append-list '(= x) rest)))
 )
+
+(defn when
+  [ condition +rest ]
+  (if condition
+    (cons do rest)
+    Nil
+  )
+)
+
+(defn test []
+  (when True (println "Test") (println "This is a test") ("Oops"))
+)

@@ -30,10 +30,10 @@ pub fn eval(atom: Atom, namespace_variables: NamespaceTable, local_variables: &V
         .map(|item| eval(item, namespace_variables.clone(), local_variables))
         .collect(),
     ),
+    Number(x) => Number(x.simplify()),
     f @ Function(_) => f,
     m @ Macro(_) => m,
     maf @ MultiArityFn(_) => maf,
-    n @ Number(_) => n,
     b @ Bool(_) => b,
     e @ Error(_) => e,
     s @ Str(_) => s,

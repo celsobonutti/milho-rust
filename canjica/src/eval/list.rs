@@ -1,4 +1,5 @@
-use pipoquinha::parser::atom::Atom::{self, *};
+use pipoquinha::parser::atom::Atom;
+use pipoquinha::types::number::Number;
 use pipoquinha::parser::list::List;
 
 use super::{arithmetic, boolean, comparison, definition, function, io, special, vector};
@@ -11,12 +12,12 @@ pub fn execute(
 ) -> Atom {
   let fun_name = list.head;
   match fun_name {
-    Some(BuiltIn(x)) => match x.as_str() {
+    Some(Atom::BuiltIn(x)) => match x.as_str() {
       ".__add__" => arithmetic::add(list.tail, namespace_variables, local_variables),
       ".__mul__" => arithmetic::multiply(list.tail, namespace_variables, local_variables),
-      ".__div__" => arithmetic::divide(list.tail, namespace_variables, local_variables),
       ".__eq__" => comparison::eq(list.tail, namespace_variables, local_variables),
       ".__negate__" => arithmetic::negate(list.tail, namespace_variables, local_variables),
+      ".__invert__" => arithmetic::invert(list.tail, namespace_variables, local_variables),
       ".__def__" => definition::variable(list.tail, namespace_variables, local_variables),
       ".__defn__" => definition::function(list.tail, namespace_variables, local_variables),
       ".__defmacro__" => definition::macro_d(list.tail, namespace_variables, local_variables),
@@ -36,7 +37,7 @@ pub fn execute(
             local_variables,
           )
         } else {
-          Error(format!(
+          Atom::Error(format!(
             "Wrong number of arguments for 'eval': was expecting 1, found {}",
             list.tail.len()
           ))
@@ -57,23 +58,23 @@ pub fn execute(
         if list.tail.len() == 1 {
           list.tail.remove(0)
         } else {
-          Error(format!(
+          Atom::Error(format!(
             "Wrong number of arguments for 'quote': was expecting 1, found {}",
             list.tail.len()
           ))
         }
       }
-      n => Error(format!("Undefined built-in: {}", n)),
+      n => Atom::Error(format!("Undefined built-in: {}", n)),
     },
-    Some(Identifier(name)) => {
+    Some(Atom::Identifier(name)) => {
       let item = eval(
-        Identifier(name.to_string()),
+        Atom::Identifier(name.to_string()),
         namespace_variables.clone(),
         local_variables,
       );
 
       match item {
-        b @ BuiltIn(_) => execute(
+        b @ Atom::BuiltIn(_) => execute(
           List {
             head: Some(b),
             tail: list.tail,
@@ -81,13 +82,13 @@ pub fn execute(
           namespace_variables,
           local_variables,
         ),
-        Function(function) => function::execute(
+        Atom::Function(function) => function::execute(
           *function.clone(),
           list.tail,
           namespace_variables,
           local_variables,
         ),
-        Macro(m) => eval(
+        Atom::Macro(m) => eval(
           function::execute_macro(
             *m.clone(),
             list.tail,
@@ -97,18 +98,18 @@ pub fn execute(
           namespace_variables,
           local_variables,
         ),
-        MultiArityFn(functions) => function::multi_arity_function(
+        Atom::MultiArityFn(functions) => function::multi_arity_function(
           *functions.clone(),
           list.tail,
           namespace_variables,
           local_variables,
         ),
-        e @ Error(_) => e,
-        _ => Error(format!("Cannot invoke {}, as it's not a function", name)),
+        e @ Atom::Error(_) => e,
+        _ => Atom::Error(format!("Cannot invoke {}, as it's not a function", name)),
       }
     }
-    Some(Function(f)) => function::execute(*f, list.tail, namespace_variables, local_variables),
-    Some(List(l)) => {
+    Some(Atom::Function(f)) => function::execute(*f, list.tail, namespace_variables, local_variables),
+    Some(Atom::List(l)) => {
       let h = execute(*l, namespace_variables.clone(), local_variables);
       let new_list = List {
         head: Some(h),
@@ -117,9 +118,9 @@ pub fn execute(
 
       execute(new_list, namespace_variables, local_variables)
     }
-    Some(e @ Error(_)) => e,
-    Some(value) => Error(format!("Cannot invoke {}, as it's not a function", value)),
-    None => Nil,
+    Some(e @ Atom::Error(_)) => e,
+    Some(value) => Atom::Error(format!("Cannot invoke {}, as it's not a function", value)),
+    None => Atom::Nil,
   }
 }
 
@@ -138,13 +139,13 @@ fn cons(
 
     let x = eval(target, namespace_variables, local_variables);
 
-    if let List(t) = x {
-      List(Box::new(t.prepend(new_head)))
+    if let Atom::List(t) = x {
+      Atom::List(Box::new(t.prepend(new_head)))
     } else {
-      Error("Cannot cons into non-list value".to_string())
+      Atom::Error("Cannot cons into non-list value".to_string())
     }
   } else {
-    Error(
+    Atom::Error(
       format!(
         "Wrong number of arguments for cons: was expecting 2, found {}",
         arguments.len()
@@ -162,13 +163,19 @@ fn make_list(
   if arguments.len() == 1 || arguments.len() == 2 {
     match (
       eval(arguments.remove(0), namespace_variables, local_variables),
-      arguments.get(0).unwrap_or(&Nil),
+      arguments.get(0).unwrap_or(&Atom::Nil),
     ) {
-      (Number(x), value) => List(Box::new(List::from_vec(vec![value.clone(); x as usize]))),
-      _ => Error("Memes".to_string()),
+      (Atom::Number(x), value) =>  {
+       if let Number(size, 1) = x {
+         Atom::List(Box::new(List::from_vec(vec![value.clone(); size as usize])))
+       } else {
+         Atom::Error(format!("The size for a list must be a integer."))
+       }
+      },
+      _ => Atom::Error("Memes".to_string()),
     }
   } else {
-    Error(format!(
+    Atom::Error(format!(
       "Wrong number of arguments for 'make_list': was expecing 1 or 2, found {}",
       arguments.len()
     ))
@@ -182,13 +189,13 @@ fn car(
 ) -> Atom {
   if arguments.len() == 1 {
     match eval(arguments.remove(0), namespace_variables, local_variables) {
-      List(l) => l.head.unwrap_or(Nil),
+      Atom::List(l) => l.head.unwrap_or(Atom::Nil),
       _ => {
-        Error("Wrong type of arguments for 'car': it can only be applied into lists".to_string())
+        Atom::Error("Wrong type of arguments for 'car': it can only be applied into lists".to_string())
       }
     }
   } else {
-    Error(format!(
+    Atom::Error(format!(
       "Wrong number of arguments for 'car': was expecting 1, found {}",
       arguments.len()
     ))
@@ -202,13 +209,13 @@ fn cdr(
 ) -> Atom {
   if arguments.len() == 1 {
     match eval(arguments.remove(0), namespace_variables, local_variables) {
-      List(l) => List(Box::new(List::from_vec(l.tail))),
+      Atom::List(l) => Atom::List(Box::new(List::from_vec(l.tail))),
       _ => {
-        Error("Wrong type of arguments for 'car': it can only be applied into lists".to_string())
+        Atom::Error("Wrong type of arguments for 'car': it can only be applied into lists".to_string())
       }
     }
   } else {
-    Error(format!(
+    Atom::Error(format!(
       "Wrong number of arguments for 'cdr': was expecting 1, found {}",
       arguments.len()
     ))

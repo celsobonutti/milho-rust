@@ -5,8 +5,8 @@ use pom::parser::*;
 pub const BUILT_INS: [&[u8]; 25] = [
   b".__add__",
   b".__mul__",
-  b".__div__",
   b".__negate__",
+  b".__invert__",
   b".__eq__",
   b".__def__",
   b".__defn__",
