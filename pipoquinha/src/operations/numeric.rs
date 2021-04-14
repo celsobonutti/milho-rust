@@ -1,5 +1,6 @@
-use crate::parser::boolean::Boolean::*;
 use crate::parser::atom::Atom;
+use crate::parser::boolean::Boolean::*;
+use crate::types::number::Number;
 
 impl Atom {
   pub fn add(&self, other: &Self) -> Self {
@@ -35,10 +36,10 @@ impl Atom {
   }
 
   pub fn invert(&self) -> Self {
-    if let Atom::Number(x) = self {
-      Atom::Number(x.invert())
-    } else {
-      Atom::Error("Cannot invert non-numeric value".to_string())
+    match self {
+      Atom::Number(Number(0, _)) => Atom::Error("Tried to invert 0".to_string()),
+      Atom::Number(x) => Atom::Number(x.invert()),
+      _ => Atom::Error("Cannot invert non-numeric value".to_string()),
     }
   }
 

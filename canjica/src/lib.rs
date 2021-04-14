@@ -1,4 +1,5 @@
 mod eval;
+#[cfg(test)]
 mod tests;
 
 use std::cell::RefCell;
@@ -28,9 +29,9 @@ impl Table {
     }
   }
 
-  pub fn initialize(std_functions: Vec<Atom>) -> Rc<RefCell<Self>> { 
+  pub fn initialize(std_functions: Vec<Atom>) -> Rc<RefCell<Self>> {
     let table = Table {
-      module: HashMap::new()
+      module: HashMap::new(),
     };
 
     let table = Rc::new(RefCell::new(table));

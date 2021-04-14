@@ -1,6 +1,6 @@
+mod display;
+mod identifier;
+mod list;
+mod operations;
 pub mod parser;
 pub mod types;
-mod operations;
-mod display;
-mod list;
-mod identifier;

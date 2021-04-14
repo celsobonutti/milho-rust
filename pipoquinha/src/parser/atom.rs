@@ -6,7 +6,7 @@ use super::boolean::Boolean;
 use super::list::List;
 use super::vector::Vector;
 use super::{boolean, built_in, identifier, list as list_p, number, string, vector};
-use crate::{id, list, types::number::Number};
+use crate::{list, types::number::Number};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Function {
@@ -55,7 +55,10 @@ pub fn parser<'a>() -> Parser<'a, u8, Atom> {
   .name("Atom")
   .map(|(is_quoted, atom)| {
     if is_quoted.is_some() {
-      Atom::List(Box::new(list![id!("quote"), atom]))
+      Atom::List(Box::new(list![
+        Atom::BuiltIn(".__quote__".to_string()),
+        atom
+      ]))
     } else {
       atom
     }
@@ -177,5 +180,21 @@ impl Atom {
     } else {
       false
     }
+  }
+
+  pub fn unsafe_number(x: i64, y: i64) -> Self {
+    Self::Number(Number(x, y))
+  }
+
+  pub fn make_boolean(x: bool) -> Self {
+    if x {
+      Self::Bool(Boolean::True)
+    } else {
+      Self::Bool(Boolean::False)
+    }
+  }
+
+  pub fn make_string(x: &str) -> Self {
+    Self::Str(x.to_string())
   }
 }
