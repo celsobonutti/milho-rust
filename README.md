@@ -72,6 +72,15 @@ m3M3$_irados ;; after that, they can hold pretty much anything
 
 (fn [ x ] (* 2 x)) ;; Anonymous functions are defined like this
 ```
+* ### Macros
+```clojure
+(defmacro         ;; You can define macros with the defmacro keyword
+  add             ;; Macros are just like functions, except their arguments are not evaluated
+  [+rest]         ;; before the macro is expanded, and then ran
+  (cons + rest)   ;; This means that this is the same as (rest1 + rest2 + rest 3 ...)
+)                 ;; A function with the same body would evaluate to the list (.__add__ rest1 rest2 rest3...)
+
+```
 
 ## Dealing with errors
 ```clojure
