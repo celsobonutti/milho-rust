@@ -1,6 +1,4 @@
-use pipoquinha::parser::atom::Atom;
-use pipoquinha::parser::list::List;
-use pipoquinha::types::number::Number;
+use pipoquinha::types::{Atom, List, Number};
 
 use super::{arithmetic, boolean, comparison, definition, function, io, special, vector};
 use crate::{eval, NamespaceTable};
@@ -24,13 +22,8 @@ pub fn execute(mut list: List, namespace_variables: NamespaceTable) -> Atom {
       ".__eval__" => {
         if list.tail.len() == 1 {
           eval(
-            eval(
-              list.tail.remove(0),
-              namespace_variables.clone(),
-              
-            ),
+            eval(list.tail.remove(0), namespace_variables.clone()),
             namespace_variables,
-            
           )
         } else {
           Atom::Error(format!(
@@ -66,7 +59,6 @@ pub fn execute(mut list: List, namespace_variables: NamespaceTable) -> Atom {
       let item = eval(
         Atom::Identifier(name.to_string()),
         namespace_variables.clone(),
-        
       );
 
       match item {
@@ -76,30 +68,17 @@ pub fn execute(mut list: List, namespace_variables: NamespaceTable) -> Atom {
             tail: list.tail,
           },
           namespace_variables,
-          
         ),
-        Atom::Function(function) => function::execute(
-          *function.clone(),
-          list.tail,
-          namespace_variables,
-          
-        ),
+        Atom::Function(function) => {
+          function::execute(*function.clone(), list.tail, namespace_variables)
+        }
         Atom::Macro(m) => eval(
-          function::execute_macro(
-            *m.clone(),
-            list.tail,
-            namespace_variables.clone(),
-            
-          ),
+          function::execute_macro(*m.clone(), list.tail, namespace_variables.clone()),
           namespace_variables,
-          
         ),
-        Atom::MultiArityFn(functions) => function::multi_arity_function(
-          *functions.clone(),
-          list.tail,
-          namespace_variables,
-          
-        ),
+        Atom::MultiArityFn(functions) => {
+          function::multi_arity_function(*functions.clone(), list.tail, namespace_variables)
+        }
         e @ Atom::Error(_) => e,
         _ => Atom::Error(format!("Cannot invoke {}, as it's not a function", name)),
       }
@@ -120,16 +99,9 @@ pub fn execute(mut list: List, namespace_variables: NamespaceTable) -> Atom {
   }
 }
 
-fn cons(
-  mut arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  ) -> Atom {
+fn cons(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   if arguments.len() == 2 {
-    let new_head = eval(
-      arguments.remove(0),
-      namespace_variables.clone(),
-      
-    );
+    let new_head = eval(arguments.remove(0), namespace_variables.clone());
     let target = arguments.remove(0);
 
     let x = eval(target, namespace_variables);
@@ -150,10 +122,7 @@ fn cons(
   }
 }
 
-fn make_list(
-  mut arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  ) -> Atom {
+fn make_list(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   if arguments.len() == 1 || arguments.len() == 2 {
     match (
       eval(arguments.remove(0), namespace_variables),
@@ -176,10 +145,7 @@ fn make_list(
   }
 }
 
-fn car(
-  mut arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  ) -> Atom {
+fn car(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   if arguments.len() == 1 {
     match eval(arguments.remove(0), namespace_variables) {
       Atom::List(l) => l.head.unwrap_or(Atom::Nil),
@@ -195,10 +161,7 @@ fn car(
   }
 }
 
-fn cdr(
-  mut arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  ) -> Atom {
+fn cdr(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   if arguments.len() == 1 {
     match eval(arguments.remove(0), namespace_variables) {
       Atom::List(l) => Atom::List(Box::new(List::from_vec(l.tail))),

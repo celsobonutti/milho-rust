@@ -7,7 +7,7 @@ use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
 
 pub use eval::eval;
-use pipoquinha::parser::atom::Atom;
+use pipoquinha::types::Atom;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Table {

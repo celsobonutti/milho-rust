@@ -1,37 +1,25 @@
 use pom::parser::*;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum Boolean {
-  True,
-  False
-}
-
+use crate::types::Boolean;
 pub fn parser<'a>() -> Parser<'a, u8, Boolean> {
   let b_true = (seq(b"True") | seq(b"Real")).map(|_| Boolean::True);
   let b_false = (seq(b"False") | seq(b"Feiki")).map(|_| Boolean::False);
-  
-  (b_true | b_false).name("Boolean")
-}
 
-pub fn negate(b: Boolean) -> Boolean {
-  match b {
-    Boolean::True => Boolean::False,
-    Boolean::False => Boolean::True
-  }
+  (b_true | b_false).name("Boolean")
 }
 
 #[test]
 fn parse_true() {
-    let input = b"True";
-    let output = parser().parse(input);
+  let input = b"True";
+  let output = parser().parse(input);
 
-    assert_eq!(output, Ok(Boolean::True))
+  assert_eq!(output, Ok(Boolean::True))
 }
 
 #[test]
 fn parse_false() {
-    let input = b"False";
-    let output = parser().parse(input);
+  let input = b"False";
+  let output = parser().parse(input);
 
-    assert_eq!(output, Ok(Boolean::False))
+  assert_eq!(output, Ok(Boolean::False))
 }

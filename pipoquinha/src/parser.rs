@@ -1,20 +1,20 @@
-use self::atom::{Atom};
+use crate::types::Atom;
 
-pub mod boolean;
-pub mod number;
 pub mod atom;
-pub mod vector;
+pub mod boolean;
+pub mod built_in;
+pub mod file;
 pub mod identifier;
 pub mod list;
+pub mod number;
 pub mod space;
-pub mod file;
 pub mod string;
-pub mod built_in;
+pub mod vector;
 
 pub fn unsafe_parse_atom(input: &str) -> Atom {
-    atom::parser().parse(input.as_bytes()).unwrap()
+  atom::parser().parse(input.as_bytes()).unwrap()
 }
 
 pub fn unsafe_parse_file(input: &str) -> Vec<Atom> {
-    file::parser().parse(input.as_bytes()).unwrap()
+  file::parser().parse(input.as_bytes()).unwrap()
 }

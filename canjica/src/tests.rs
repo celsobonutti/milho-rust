@@ -1,4 +1,5 @@
-use pipoquinha::parser::{atom::Atom, unsafe_parse_atom};
+use pipoquinha::parser::unsafe_parse_atom;
+use pipoquinha::types::Atom;
 
 use crate::{eval, Table};
 

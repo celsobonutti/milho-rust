@@ -1,7 +1,9 @@
 use std::fmt::{Display, Formatter, Result};
 
-use crate::parser::atom::Atom::{self, *};
-use crate::parser::boolean::Boolean;
+use crate::types::{
+  Atom::{self, *},
+  Boolean,
+};
 
 impl Display for Atom {
   fn fmt(&self, f: &mut Formatter<'_>) -> Result {

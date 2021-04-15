@@ -1,5 +1,7 @@
-use pipoquinha::parser::atom::Atom::{self, *};
-use pipoquinha::parser::boolean::Boolean;
+use pipoquinha::types::{
+  Atom::{self, *},
+  Boolean,
+};
 
 use crate::{eval, NamespaceTable};
 

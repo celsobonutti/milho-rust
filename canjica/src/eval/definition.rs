@@ -1,6 +1,6 @@
-use pipoquinha::parser::{
-  atom::Atom::{self, *},
-  list::List,
+use pipoquinha::types::{
+  Atom::{self, *},
+  List,
 };
 
 use crate::{eval, NamespaceTable};

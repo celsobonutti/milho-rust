@@ -9,7 +9,7 @@ mod special;
 mod string;
 mod vector;
 
-use pipoquinha::parser::atom::Atom::{self, *};
+use pipoquinha::types::Atom::{self, *};
 
 use super::NamespaceTable;
 

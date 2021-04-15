@@ -1,16 +1,12 @@
 use pom::parser::*;
 
-use super::atom::{self, Atom};
+use super::atom;
 use super::space::space;
-
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub struct List {
-  pub head: Option<Atom>,
-  pub tail: Vec<Atom>,
-}
+use crate::types::List;
 
 pub fn parser<'a>() -> Parser<'a, u8, List> {
-  let parser = sym(b'(') * space().opt() * list(atom::parser(), space()) - space().opt() - sym(b')');
+  let parser =
+    sym(b'(') * space().opt() * list(atom::parser(), space()) - space().opt() - sym(b')');
 
   parser.map(List::from_vec).name("List")
 }
@@ -18,8 +14,8 @@ pub fn parser<'a>() -> Parser<'a, u8, List> {
 #[cfg(test)]
 mod tests {
   use super::{parser, List};
-  use crate::parser::atom::Atom::{self, *};
-  use crate::types::number::Number;
+  use crate::types::Atom::{self, *};
+  use crate::types::Number;
 
   #[test]
   fn parse_sum_parser() {
@@ -30,7 +26,11 @@ mod tests {
       output,
       Ok(List {
         head: Some(Identifier(String::from("+"))),
-        tail: vec![Atom::Number(Number::new(3, 1).unwrap()), Atom::Number(Number::new(3, 1).unwrap()), Atom::Number(Number::new(4, 1).unwrap())]
+        tail: vec![
+          Atom::Number(Number::new(3, 1).unwrap()),
+          Atom::Number(Number::new(3, 1).unwrap()),
+          Atom::Number(Number::new(4, 1).unwrap())
+        ]
       })
     );
   }
@@ -44,7 +44,10 @@ mod tests {
     assert_eq!(
       Ok(List {
         head: Some(Identifier(String::from("+"))),
-        tail: vec![Atom::Number(Number::new(3, 1).unwrap()), List(Box::new(internal_sum))]
+        tail: vec![
+          Atom::Number(Number::new(3, 1).unwrap()),
+          List(Box::new(internal_sum))
+        ]
       }),
       output
     )

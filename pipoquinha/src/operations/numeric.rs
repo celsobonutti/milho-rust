@@ -1,6 +1,4 @@
-use crate::parser::atom::Atom;
-use crate::parser::boolean::Boolean::*;
-use crate::types::number::Number;
+use crate::types::{Atom, Boolean::*, Number};
 
 impl Atom {
   pub fn add(&self, other: &Self) -> Self {

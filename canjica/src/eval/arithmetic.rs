@@ -1,12 +1,11 @@
-use pipoquinha::parser::atom::Atom::{self, *};
-use pipoquinha::types::number::Number;
+use pipoquinha::types::{
+  Atom::{self, *},
+  Number,
+};
 
 use crate::{eval, NamespaceTable};
 
-pub fn add(
-  arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  ) -> Atom {
+pub fn add(arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   arguments
     .into_iter()
     .map(|val| eval(val, namespace_variables.clone()))
@@ -15,10 +14,7 @@ pub fn add(
     })
 }
 
-pub fn negate(
-  mut arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  ) -> Atom {
+pub fn negate(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   match arguments.as_slice() {
     [_] => eval(arguments.remove(0), namespace_variables).negate(),
     _ => Error(format!(
@@ -28,10 +24,7 @@ pub fn negate(
   }
 }
 
-pub fn invert(
-  mut arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  ) -> Atom {
+pub fn invert(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   match arguments.as_slice() {
     [_] => eval(arguments.remove(0), namespace_variables).invert(),
     _ => Error(format!(
@@ -41,10 +34,7 @@ pub fn invert(
   }
 }
 
-pub fn multiply(
-  arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  ) -> Atom {
+pub fn multiply(arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   arguments
     .into_iter()
     .map(|val| eval(val, namespace_variables.clone()))

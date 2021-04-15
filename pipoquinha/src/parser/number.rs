@@ -2,7 +2,7 @@ extern crate pom;
 use pom::parser::*;
 use std::str;
 
-use crate::types::number::Number;
+use crate::types::Number;
 
 pub fn parser<'a>() -> Parser<'a, u8, Option<Number>> {
   let sign = sym(b'-').opt();

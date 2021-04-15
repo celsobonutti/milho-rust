@@ -1,6 +1,6 @@
 use crate::tests::eval_with_empty_tables;
 
-use pipoquinha::parser::atom::Atom;
+use pipoquinha::types::Atom;
 
 #[test]
 fn number_equality() {

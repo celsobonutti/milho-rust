@@ -1,7 +1,8 @@
 use std::io;
 
-use crate::{NamespaceTable};
-use pipoquinha::parser::atom::{self, Atom};
+use crate::NamespaceTable;
+use pipoquinha::parser::atom;
+use pipoquinha::types::Atom;
 
 pub fn print(arguments: Vec<Atom>, _namespace_variables: NamespaceTable) -> Atom {
   for (index, item) in arguments.into_iter().enumerate() {
@@ -42,4 +43,3 @@ pub fn read(arguments: Vec<Atom>) -> Atom {
     Atom::Error("Wrong number of arguments for 'read': it takes no arguments".to_string())
   }
 }
-
