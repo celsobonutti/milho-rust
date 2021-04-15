@@ -36,12 +36,6 @@ m3M3$_irados ;; after that, they can hold pretty much anything
 (cons + '(2 3)) ;; We have all of your typical LISP list functions
 () ;; Empty spaces evaluate to Nil
 ```
-* Vector
-```clojure
-[ "hello" "my" "kind" "stranger" ", don't you have something better to do?" ] ;; Vectors are declared with brackets and spaces between elements (yup, no commas)
-[ 5 "years" ] ;; They can hold multiple data types
-(concat [ "years" ] [ 25 ]) ;; You can concatenate them like this
-```
 * Error
 ```clojure
 (make-error 404 "Not found");; Erros cannot be created out of nowhere. You can, though, create your own errors using the make-error builtin
@@ -52,31 +46,31 @@ m3M3$_irados ;; after that, they can hold pretty much anything
 * ### Variables
 ```clojure
 (def a 5) ;; Variables are declared with the def built-in
-(def things-i-like [ "memes" "basimga" "xd" ]) ;; And they can hold pretty much everything ;)
+(def things-i-like '( "memes" "basimga" "xd" )) ;; And they can hold pretty much everything ;)
 
-(let [x 2 y 5] (sub x y)) ;; Local variables are defined like this.
+(let (x 2 y 5) (sub x y)) ;; Local variables are defined like this.
 => -3 This odd positions are the identifiers, the even are the values.
 ```
 * ### Functions
 ```clojure
 (defn      ;; functions are declared with the defn built-in
   sum      ;; its first argument is the name of your function
-  [ a b ]  ;; the second one is a vector with the name of your parameters  
+  ( a b )  ;; the second one is a list with the name of your parameters  
   (+ a b)  ;; and the third is your function per se
 ) 
 
 (defn sub ;; You can define multi-arity functions like this.
-  ([ x ] (negate x)) ;; And then your function will work according to the number of parameters
-  ([ x +rest ] (append-list (+ x) (map negate rest))) ;; They can even be variadics
+  (( x ) (negate x)) ;; And then your function will work according to the number of parameters
+  (( x +rest ) (append-list (+ x) (map negate rest))) ;; They can even be variadics
 ) ;; But be careful: you can only have one body per number of params, and one variadic
 
-(fn [ x ] (* 2 x)) ;; Anonymous functions are defined like this
+(fn ( x ) (* 2 x)) ;; Anonymous functions are defined like this
 ```
 * ### Macros
 ```clojure
 (defmacro         ;; You can define macros with the defmacro keyword
   add             ;; Macros are just like functions, except their arguments are not evaluated
-  [+rest]         ;; before the macro is expanded, and then ran
+  (+rest)         ;; before the macro is expanded, and then ran
   (cons + rest)   ;; This means that this is the same as (rest1 + rest2 + rest 3 ...)
 )                 ;; A function with the same body would evaluate to the list (.__add__ rest1 rest2 rest3...)
 
