@@ -1,9 +1,9 @@
 use std::io;
 
-use crate::{NamespaceTable, VarTable};
+use crate::{NamespaceTable};
 use pipoquinha::parser::atom::{self, Atom};
 
-pub fn print(arguments: Vec<Atom>, _namespace_variables: NamespaceTable, _local_variables: &VarTable) -> Atom {
+pub fn print(arguments: Vec<Atom>, _namespace_variables: NamespaceTable) -> Atom {
   for (index, item) in arguments.into_iter().enumerate() {
     match item {
       Atom::Str(string) => {

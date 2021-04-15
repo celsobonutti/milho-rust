@@ -1,26 +1,20 @@
-use std::collections::HashMap;
-
 use pipoquinha::parser::{
   atom::Atom::{self, *},
   list::List,
 };
 
-use crate::{eval, NamespaceTable, VarTable};
+use crate::{eval, NamespaceTable};
 
-pub fn variable(
-  mut arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  local_variables: &VarTable,
-) -> Atom {
+pub fn variable(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   if arguments.len() == 2 {
     if let Identifier(name) = arguments.remove(0) {
       let namespace_vars = namespace_variables.clone();
 
-      let value = eval(arguments.remove(0), namespace_variables, local_variables);
+      let value = eval(arguments.remove(0), namespace_variables);
 
       let mut mutable_namespace = namespace_vars.borrow_mut();
 
-      mutable_namespace.insert_module(name.clone(), value);
+      mutable_namespace.insert_global_var(&name, value);
 
       drop(mutable_namespace);
 
@@ -75,11 +69,7 @@ fn multi_arity_fn(acc: Atom, body: Atom, has_variadic_shown_up: &mut bool) -> At
   invalid_body_error
 }
 
-pub fn function(
-  mut arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  _local_variables: &VarTable,
-) -> Atom {
+pub fn function(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   match arguments.as_slice() {
     [Identifier(_name), Vector(parameters), _]
       if parameters.iter().all(|atom| atom.is_identifier()) =>
@@ -96,7 +86,7 @@ pub fn function(
 
         let mut mutable_namespace = namespace_vars.borrow_mut();
 
-        mutable_namespace.insert_module(name.clone(), function);
+        mutable_namespace.insert_global_var(&name, function);
 
         drop(mutable_namespace);
 
@@ -120,7 +110,7 @@ pub fn function(
 
           let mut mutable_namespace = namespace_vars.borrow_mut();
 
-          mutable_namespace.insert_module(name.clone(), fns);
+          mutable_namespace.insert_global_var(&name, fns);
 
           drop(mutable_namespace);
 
@@ -139,11 +129,7 @@ pub fn function(
   }
 }
 
-pub fn anonymous_function(
-  mut arguments: Vec<Atom>,
-  _namespace_variables: NamespaceTable,
-  _local_variables: &VarTable,
-) -> Atom {
+pub fn anonymous_function(mut arguments: Vec<Atom>, _namespace_variables: NamespaceTable) -> Atom {
   if arguments.len() == 2 {
     if let Vector(parameters) = arguments.remove(0) {
       Atom::new_function(parameters, arguments.remove(0), false)
@@ -158,37 +144,44 @@ pub fn anonymous_function(
   }
 }
 
-pub fn local_variables(
-  mut arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  local_variables: &VarTable,
-) -> Atom {
+pub fn local_variables(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   if arguments.len() == 2 {
     if let Vector(vars) = arguments.remove(0) {
       let mut pairs = vars.chunks_exact(2).into_iter();
 
-      let mut args = HashMap::new();
-
-      args.extend(local_variables.clone());
+      let mut inserted_vars = Vec::new();
 
       while let Some([key, value]) = pairs.next() {
         if let Identifier(name) = key {
-          args.insert(
-            name.clone(),
-            eval(value.clone(), namespace_variables.clone(), &args),
-          );
+          inserted_vars.push(name);
+
+          namespace_variables
+            .borrow_mut()
+            .insert_local_var(name, eval(value.clone(), namespace_variables.clone()));
         } else {
+          inserted_vars
+            .iter()
+            .for_each(|var| namespace_variables.borrow_mut().drop_local_var(var));
           return Error("Something is wrong. Looks like one of your variables is not using an identifier as its name.".to_string());
         }
       }
 
       if pairs.remainder().len() > 0 {
+        inserted_vars
+          .iter()
+          .for_each(|var| namespace_variables.borrow_mut().drop_local_var(var));
         return Error(
           "Something is wrong. Looks like we have an odd number of values in the key-value vector."
             .to_string(),
         );
       } else {
-        eval(arguments.remove(0), namespace_variables, &args)
+        let value = eval(arguments.remove(0), namespace_variables.clone());
+
+        inserted_vars
+          .iter()
+          .for_each(|var| namespace_variables.borrow_mut().drop_local_var(var));
+
+        value
       }
     } else {
       return Error(
@@ -204,11 +197,7 @@ pub fn local_variables(
   }
 }
 
-pub fn macro_d(
-  mut arguments: Vec<Atom>,
-  namespace_variables: NamespaceTable,
-  _local_variables: &VarTable,
-) -> Atom {
+pub fn macro_d(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   match arguments.as_slice() {
     [Identifier(_name), Vector(parameters), _]
       if parameters.iter().all(|atom| atom.is_identifier()) =>
@@ -225,7 +214,7 @@ pub fn macro_d(
 
         let mut mutable_namespace = namespace_vars.borrow_mut();
 
-        mutable_namespace.insert_module(name.clone(), function);
+        mutable_namespace.insert_global_var(&name, function);
 
         drop(mutable_namespace);
 

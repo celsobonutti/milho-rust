@@ -11,23 +11,21 @@ mod vector;
 
 use pipoquinha::parser::atom::Atom::{self, *};
 
-use super::{NamespaceTable, VarTable};
+use super::NamespaceTable;
 
-pub fn eval(atom: Atom, namespace_variables: NamespaceTable, local_variables: &VarTable) -> Atom {
+pub fn eval(atom: Atom, namespace_variables: NamespaceTable) -> Atom {
   match atom {
     Identifier(id) => {
-      if let Some(value) = local_variables.get(id.as_str()) {
-        value.clone()
-      } else if let Some(value) = namespace_variables.clone().borrow().get(id.as_str()) {
+      if let Some(value) = namespace_variables.clone().borrow().get(&id) {
         value.clone()
       } else {
         Error(format!("Undefined variable: {}", id))
       }
     }
-    List(l) => list::execute(*l, namespace_variables, local_variables),
+    List(l) => list::execute(*l, namespace_variables),
     Vector(l) => Vector(
       l.into_iter()
-        .map(|item| eval(item, namespace_variables.clone(), local_variables))
+        .map(|item| eval(item, namespace_variables.clone()))
         .collect(),
     ),
     Number(x) => Number(x.simplify()),

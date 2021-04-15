@@ -1,17 +1,16 @@
 use pipoquinha::parser::{atom::Atom, boolean::Boolean};
 
-use crate::{eval, NamespaceTable, VarTable};
+use crate::{eval, NamespaceTable};
 
 pub fn not(
   arguments: Vec<Atom>,
   namespace_variables: NamespaceTable,
-  local_variables: &VarTable,
-) -> Atom {
+  ) -> Atom {
   if arguments.len() == 1 {
     match eval(
       arguments.into_iter().next().unwrap(),
       namespace_variables,
-      local_variables,
+      
     ) {
       b @ Atom::Bool(_) => b.not(),
       e @ Atom::Error(_) => e,

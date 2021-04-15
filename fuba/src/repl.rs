@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io};
+use std::io;
 
 use canjica::{eval, NamespaceTable};
 use pipoquinha::parser::atom;
@@ -15,7 +15,7 @@ pub fn start(var_table: NamespaceTable) {
     io::stdin().read_line(&mut input).unwrap();
 
     match atom::parser().parse(input.as_bytes()) {
-      Ok(atom) => match eval(atom, var_table.clone(), &HashMap::new()) {
+      Ok(atom) => match eval(atom, var_table.clone()) {
         v => println!("🍿> {}", v),
       },
       Err(reason) => {

@@ -1,5 +1,4 @@
 use std::fs::read;
-use std::collections::HashMap;
 
 use canjica::{eval, NamespaceTable};
 use pipoquinha::parser::file;
@@ -11,7 +10,7 @@ pub fn start(path: &str, var_table: NamespaceTable) {
   match instructions {
     Ok(instructions) => {
       for instruction in instructions {
-        match eval(instruction, var_table.clone(), &HashMap::new()) {
+        match eval(instruction, var_table.clone()) {
           result => {
             println!("{}", result);
           }
