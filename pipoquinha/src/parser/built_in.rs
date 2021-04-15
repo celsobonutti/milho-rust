@@ -2,7 +2,7 @@ use pom::parser::*;
 
 use crate::types::BuiltIn;
 
-pub const BUILT_INS: [&[u8]; 25] = [
+pub const BUILT_INS: [&[u8]; 24] = [
   b".__add__",
   b".__mul__",
   b".__negate__",
@@ -22,7 +22,6 @@ pub const BUILT_INS: [&[u8]; 25] = [
   b".__not__",
   b".__head__",
   b".__tail__",
-  b".__concat__",
   b".__cons__",
   b".__make-list__",
   b".__car__",
@@ -48,7 +47,6 @@ pub fn parser<'a>() -> Parser<'a, u8, BuiltIn> {
     | seq(b".__loop__").map(|_| BuiltIn::Loop)
     | seq(b".__do__").map(|_| BuiltIn::Do)
     | seq(b".__not__").map(|_| BuiltIn::Not)
-    | seq(b".__concat__").map(|_| BuiltIn::Concat)
     | seq(b".__cons__").map(|_| BuiltIn::Cons)
     | seq(b".__make-list__").map(|_| BuiltIn::MakeList)
     | seq(b".__car__").map(|_| BuiltIn::Car)

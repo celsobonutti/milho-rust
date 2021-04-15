@@ -31,10 +31,10 @@ mod tests {
   #[test]
   fn valid_id() {
     let input = b"memes";
-    assert_eq!(Ok(String::from("memes")), parser().parse(input));
+    assert_eq!(Ok("memes".to_string()), parser().parse(input));
 
     let input = b"im-A_1dentifier";
-    assert_eq!(Ok(String::from("im-A_1dentifier")), parser().parse(input));
+    assert_eq!(Ok("im-A_1dentifier".to_string()), parser().parse(input));
   }
 
   #[test]

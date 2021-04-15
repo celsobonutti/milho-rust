@@ -1,7 +1,4 @@
-use pipoquinha::types::{
-  Atom::{self, *},
-  List,
-};
+use pipoquinha::types::Atom::{self, *};
 
 use crate::{eval, NamespaceTable};
 
@@ -34,13 +31,9 @@ fn multi_arity_fn(acc: Atom, body: Atom, has_variadic_shown_up: &mut bool) -> At
   let invalid_body_error = Error("Wrong type of argument for multi-arity function: all bodies need to be a list composed of a vector with identifiers followed by only one expression".to_string());
   if let MultiArityFn(mut v) = acc {
     if let List(l) = body {
-      if let List {
-        head: Some(Vector(items)),
-        mut tail,
-      } = *l
-      {
-        if items.iter().all(|item| item.is_identifier()) && tail.len() == 1 {
-          return match Atom::new_function(items, tail.remove(0), false) {
+      if let Some((List(items), tail)) = l.split() {
+        if items.clone().into_iter().all(|item| item.is_identifier()) && tail.len() == 1 {
+          return match Atom::new_function(items.as_vec(), tail.pop().unwrap(), false) {
             e @ Error(_) => return e,
 
             Function(new_function) => {
@@ -71,13 +64,16 @@ fn multi_arity_fn(acc: Atom, body: Atom, has_variadic_shown_up: &mut bool) -> At
 
 pub fn function(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   match arguments.as_slice() {
-    [Identifier(_name), Vector(parameters), _]
-      if parameters.iter().all(|atom| atom.is_identifier()) =>
+    [Identifier(_name), List(parameters), _]
+      if parameters
+        .clone()
+        .into_iter()
+        .all(|atom| atom.is_identifier()) =>
     {
       let name = arguments.remove(0).unwrap_id();
-      let parameters = arguments.remove(0).unwrap_vector();
+      let parameters = arguments.remove(0).unwrap_list();
 
-      let function = Atom::new_function(parameters, arguments.remove(0), false);
+      let function = Atom::new_function(parameters.as_vec(), arguments.remove(0), false);
 
       if function.is_error() {
         function
@@ -131,8 +127,8 @@ pub fn function(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -
 
 pub fn anonymous_function(mut arguments: Vec<Atom>, _namespace_variables: NamespaceTable) -> Atom {
   if arguments.len() == 2 {
-    if let Vector(parameters) = arguments.remove(0) {
-      Atom::new_function(parameters, arguments.remove(0), false)
+    if let List(parameters) = arguments.remove(0) {
+      Atom::new_function(parameters.as_vec(), arguments.remove(0), false)
     } else {
       Error("Second argument of 'fn' must be a list of identifiers.".to_string())
     }
@@ -146,7 +142,8 @@ pub fn anonymous_function(mut arguments: Vec<Atom>, _namespace_variables: Namesp
 
 pub fn local_variables(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   if arguments.len() == 2 {
-    if let Vector(vars) = arguments.remove(0) {
+    if let List(vars) = arguments.remove(0) {
+      let vars = vars.as_vec();
       let mut pairs = vars.chunks_exact(2).into_iter();
 
       let mut inserted_vars = Vec::new();
@@ -199,13 +196,17 @@ pub fn local_variables(mut arguments: Vec<Atom>, namespace_variables: NamespaceT
 
 pub fn macro_d(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   match arguments.as_slice() {
-    [Identifier(_name), Vector(parameters), _]
-      if parameters.iter().all(|atom| atom.is_identifier()) =>
+    [Identifier(_name), List(parameters), _]
+      if parameters
+        .clone()
+        .as_vec()
+        .iter()
+        .all(|atom| atom.is_identifier()) =>
     {
       let name = arguments.remove(0).unwrap_id();
-      let parameters = arguments.remove(0).unwrap_vector();
+      let parameters = arguments.remove(0).unwrap_list();
 
-      let function = Atom::new_function(parameters, arguments.remove(0), true);
+      let function = Atom::new_function(parameters.as_vec(), arguments.remove(0), true);
 
       if function.is_error() {
         function

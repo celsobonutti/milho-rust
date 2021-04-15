@@ -49,16 +49,3 @@ fn list_equality() {
     Atom::make_boolean(false)
   )
 }
-
-#[test]
-fn vector_equality() {
-  assert_eq!(
-    eval_with_empty_tables("(.__eq__ [1 2 3 4 5 6 7 8 9 10] [1 2 3 4 5 6 7 8 9 10])"),
-    Atom::make_boolean(true)
-  );
-
-  assert_eq!(
-    eval_with_empty_tables("(.__eq__ [1 2 3 4 5] [5 4 3 2 1])"),
-    Atom::make_boolean(false)
-  )
-}

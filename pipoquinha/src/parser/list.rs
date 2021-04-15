@@ -14,6 +14,7 @@ pub fn parser<'a>() -> Parser<'a, u8, List> {
 #[cfg(test)]
 mod tests {
   use super::{parser, List};
+  use crate::list;
   use crate::types::Atom::{self, *};
   use crate::types::Number;
 
@@ -24,14 +25,12 @@ mod tests {
 
     assert_eq!(
       output,
-      Ok(List {
-        head: Some(Identifier(String::from("+"))),
-        tail: vec![
-          Atom::Number(Number::new(3, 1).unwrap()),
-          Atom::Number(Number::new(3, 1).unwrap()),
-          Atom::Number(Number::new(4, 1).unwrap())
-        ]
-      })
+      Ok(list![
+        Identifier("+".to_string()),
+        Atom::Number(Number::new(3, 1).unwrap()),
+        Atom::Number(Number::new(3, 1).unwrap()),
+        Atom::Number(Number::new(4, 1).unwrap())
+      ])
     );
   }
 
@@ -42,35 +41,26 @@ mod tests {
     let internal_sum = parser().parse(b"(+ 5 3)").unwrap();
 
     assert_eq!(
-      Ok(List {
-        head: Some(Identifier(String::from("+"))),
-        tail: vec![
-          Atom::Number(Number::new(3, 1).unwrap()),
-          List(Box::new(internal_sum))
-        ]
-      }),
+      Ok(list![
+        Identifier("+".to_string()),
+        Atom::Number(Number::new(3, 1).unwrap()),
+        List(internal_sum)
+      ]),
       output
     )
   }
 
   #[test]
   fn parse_function_definition() {
-    let input = b"(defn add [ x y ] (+ x y))";
+    let input = b"(defn add (x y) (+ x y))";
 
-    let variables = vec![Identifier(String::from("x")), Identifier(String::from("y"))];
-    let head = Some(Identifier(String::from("defn")));
-    let function_name = Identifier(String::from("add"));
-    let parameters = Vector(variables.clone());
-    let expression = Box::new(List {
-      head: Some(Identifier(String::from("+"))),
-      tail: variables,
-    });
-
+    let variables = list![Identifier("x".to_string()), Identifier("y".to_string())];
+    let head = Identifier("defn".to_string());
+    let function_name = Identifier("add".to_string());
+    let parameters = List(variables.clone());
+    let expression = variables.prepend(Identifier("+".to_string()));
     assert_eq!(
-      Ok(List {
-        head,
-        tail: vec![function_name, parameters, List(expression)]
-      }),
+      Ok(list![head, function_name, parameters, List(expression)]),
       parser().parse(input)
     )
   }
@@ -79,68 +69,52 @@ mod tests {
   fn parse_variable_definition() {
     let input = b"(def my_variable 250)";
 
-    let head = Some(Identifier(String::from("def")));
-    let var_name = Identifier(String::from("my_variable"));
+    let head = Identifier("def".to_string());
+    let var_name = Identifier("my_variable".to_string());
     let value = Atom::Number(Number::new(250, 1).unwrap());
 
-    assert_eq!(
-      Ok(List {
-        head,
-        tail: vec![var_name, value]
-      }),
-      parser().parse(input)
-    );
+    assert_eq!(Ok(list![head, var_name, value]), parser().parse(input));
   }
 
   #[test]
   fn parse_anonymous_function() {
-    let input = b"(fn [ var-one var-two ] (/ var-one var-two))";
+    let input = b"(fn ( var-one var-two ) (/ var-one var-two))";
 
-    let variables = vec![
-      Identifier(String::from("var-one")),
-      Identifier(String::from("var-two")),
+    let variables = list![
+      Identifier("var-one".to_string()),
+      Identifier("var-two".to_string())
     ];
-    let head = Some(Identifier(String::from("fn")));
-    let parameters = Vector(variables.clone());
-    let expression = List(Box::new(List {
-      head: Some(Identifier(String::from("/"))),
-      tail: variables,
-    }));
+    let head = Identifier("fn".to_string());
+    let parameters = List(variables.clone());
+    let expression = List(variables.clone().prepend(Identifier("/".to_string())));
 
     assert_eq!(
-      Ok(List {
-        head,
-        tail: vec![parameters, expression]
-      }),
+      Ok(list![head, parameters, expression]),
       parser().parse(input)
     );
   }
 
   #[test]
   fn parse_local_variables() {
-    let input = b"(let [ x 2 y 9 ] (* x y 10))";
+    let input = b"(let (x 2 y 9) (* x y 10))";
 
-    let head = Some(Identifier(String::from("let")));
-    let local_variables = Vector(vec![
-      Identifier(String::from("x")),
-      Atom::Number(Number::new(2, 1).unwrap()),
-      Identifier(String::from("y")),
-      Atom::Number(Number::new(9, 1).unwrap()),
+    let head = Identifier("let".to_string());
+
+    let local_variables = List(list![
+      Atom::Identifier("x".to_string()),
+      Atom::unsafe_number(2, 1),
+      Atom::Identifier("y".to_string()),
+      Atom::unsafe_number(9, 1)
     ]);
-    let expression = Box::new(List {
-      head: Some(Identifier(String::from("*"))),
-      tail: vec![
-        Identifier(String::from("x")),
-        Identifier(String::from("y")),
-        Atom::Number(Number::new(10, 1).unwrap()),
-      ],
-    });
 
+    let expression = list![
+      Identifier("*".to_string()),
+      Identifier("x".to_string()),
+      Identifier("y".to_string()),
+      Atom::unsafe_number(10, 1)
+    ];
     assert_eq!(
-      Ok(List {
-        head,
-        tail: vec![local_variables, List(expression)]
-      }),
+      Ok(list![head, local_variables, List(expression)]),
       parser().parse(input)
     );
   }
@@ -149,12 +123,6 @@ mod tests {
   fn empty_list() {
     let input = b"()";
 
-    assert_eq!(
-      Ok(List {
-        head: None,
-        tail: vec![]
-      }),
-      parser().parse(input)
-    );
+    assert_eq!(Ok(list![]), parser().parse(input));
   }
 }

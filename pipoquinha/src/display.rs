@@ -11,18 +11,6 @@ impl Display for Atom {
       Number(x) => write!(f, "{}", x),
       Bool(Boolean::False) => write!(f, "False"),
       Bool(Boolean::True) => write!(f, "True"),
-      Vector(vector) => {
-        let mut text = String::from("[");
-        for (index, item) in vector.into_iter().enumerate() {
-          if index == 0 {
-            text.push_str(&format!("{}", *item));
-          } else {
-            text.push_str(&format!(" {}", *item));
-          }
-        }
-        text.push(']');
-        write!(f, "{}", text)
-      }
       Error(reason) => {
         write!(f, "Error: {}", reason)
       }
@@ -31,19 +19,13 @@ impl Display for Atom {
       Macro(m) => write!(f, "macro#{}", m.param_len()),
       MultiArityFn(_funs) => write!(f, "multi-arity-function"),
       List(l) => {
-        let mut text = String::from("(");
+        let mut text = "(".to_string();
 
-        let list = l.clone();
-
-        if l.head.is_some() {
-          text.push_str(&format!("{} ", list.head.unwrap()));
-
-          for (index, item) in list.tail.into_iter().enumerate() {
-            if index == 0 {
-              text.push_str(&format!("{}", item));
-            } else {
-              text.push_str(&format!(" {}", item));
-            }
+        for (index, element) in l.clone().into_iter().enumerate() {
+          if index == 0 {
+            text.push_str(&format!("{}", element));
+          } else {
+            text.push_str(&format!(" {}", element));
           }
         }
 

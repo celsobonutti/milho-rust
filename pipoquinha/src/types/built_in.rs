@@ -17,7 +17,6 @@ pub enum BuiltIn {
   Loop,
   Do,
   Not,
-  Concat,
   Cons,
   MakeList,
   Car,

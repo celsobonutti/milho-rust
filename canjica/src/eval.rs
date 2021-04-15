@@ -7,7 +7,6 @@ mod io;
 mod list;
 mod special;
 mod string;
-mod vector;
 
 use pipoquinha::types::Atom::{self, *};
 
@@ -22,12 +21,7 @@ pub fn eval(atom: Atom, namespace_variables: NamespaceTable) -> Atom {
         Error(format!("Undefined variable: {}", id))
       }
     }
-    List(l) => list::execute(*l, namespace_variables),
-    Vector(l) => Vector(
-      l.into_iter()
-        .map(|item| eval(item, namespace_variables.clone()))
-        .collect(),
-    ),
+    List(l) => list::execute(l, namespace_variables),
     Number(x) => Number(x.simplify()),
     f @ Function(_) => f,
     m @ Macro(_) => m,

@@ -1,103 +1,77 @@
+use std::collections::VecDeque;
+
 use super::Atom;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct List {
-  pub head: Option<Atom>,
-  pub tail: Vec<Atom>,
+  list: VecDeque<Atom>,
 }
 
 impl List {
   pub fn new() -> List {
     List {
-      head: None,
-      tail: vec![],
+      list: VecDeque::new(),
     }
   }
 
-  pub fn prepend(self, atom: Atom) -> List {
-    let List { head, mut tail } = self;
+  pub fn prepend(mut self, atom: Atom) -> Self {
+    self.list.push_front(atom);
+    self
+  }
 
-    if let Some(h) = head {
-      let mut new_tail = Vec::new();
+  pub fn append(mut self, atom: Atom) -> Self {
+    self.list.push_back(atom);
+    self
+  }
 
-      new_tail.push(h);
-      new_tail.append(&mut tail);
+  pub fn split(mut self) -> Option<(Atom, Self)> {
+    self.list.pop_front().map(|head| (head, self))
+  }
 
-      List {
-        head: Some(atom),
-        tail: new_tail,
-      }
-    } else {
-      List {
-        head: Some(atom),
-        tail,
-      }
+  pub fn from_vec(vec: Vec<Atom>) -> Self {
+    Self {
+      list: VecDeque::from(vec),
     }
   }
 
-  pub fn append(self, atom: Atom) -> List {
-    let List { head, mut tail } = self;
-
-    tail.push(atom);
-
-    List { head, tail }
+  pub fn len(&self) -> usize {
+    self.list.len()
   }
 
-  pub fn split(self) -> Option<(Atom, List)> {
-    let List { head, tail } = self;
-
-    head.map(|h| (h, List::from_vec(tail)))
+  pub fn is_empty(&self) -> bool {
+    self.list.is_empty()
   }
 
-  pub fn from_vec(vec: Vec<Atom>) -> List {
-    if vec.len() == 0 {
-      List {
-        head: None,
-        tail: vec,
-      }
-    } else {
-      let mut vec = vec;
-      let head = vec.remove(0);
+  pub fn as_vec(self) -> Vec<Atom> {
+    Vec::from(self.list)
+  }
 
-      List {
-        head: Some(head),
-        tail: vec,
-      }
-    }
+  pub fn pop(mut self) -> Option<Atom> {
+    self.list.pop_front()
   }
 }
 
 impl IntoIterator for List {
   type Item = Atom;
-  type IntoIter = std::vec::IntoIter<Atom>;
+  type IntoIter = std::collections::vec_deque::IntoIter<Atom>;
 
-  fn into_iter(self) -> std::vec::IntoIter<Atom> {
-    let List { head, mut tail } = self;
+  fn into_iter(self) -> std::collections::vec_deque::IntoIter<Atom> {
+    self.list.into_iter()
+  }
+}
 
-    if let Some(h) = head {
-      tail.insert(0, h);
-    }
+impl std::ops::Index<usize> for List {
+  type Output = Atom;
 
-    tail.into_iter()
+  fn index(&self, index: usize) -> &Self::Output {
+    &self.list[index]
   }
 }
 
 #[macro_export]
 macro_rules! list {
-  () => {
-    List::new()
-  };
-  ($head:expr) => {
-    List {
-      head: Some($head),
-      tail: vec![]
-    }
-  };
-  ($head:expr, $( $tail:expr ),*) => {
-    List {
-      head: Some($head),
-      tail: vec![$($tail),*]
-    }
+  ($( $tail:expr ),*) => {
+    List::from_vec(vec![$($tail),*])
   }
 }
 
@@ -117,13 +91,17 @@ mod tests {
       Atom::Number(Number::new(4, 1).unwrap())
     ];
 
-    assert_eq!(empty_list.head, None);
-    assert_eq!(one_item_list.head, Some(id!("+")));
-    assert_eq!(one_item_list.tail, vec![]);
-    assert_eq!(multiple_items_list.head, Some(id!("-")));
+    assert_eq!(empty_list.split(), None);
+
+    let (head, tail) = one_item_list.split().unwrap();
+    assert_eq!(head, id!("+"));
+    assert_eq!(tail, list![]);
+
+    let (head, tail) = multiple_items_list.split().unwrap();
+    assert_eq!(head, id!("-"));
     assert_eq!(
-      multiple_items_list.tail,
-      vec![
+      tail,
+      list![
         Atom::Number(Number::new(5, 1).unwrap()),
         Atom::Number(Number::new(4, 1).unwrap())
       ]
@@ -135,10 +113,12 @@ mod tests {
     let l1 = list![Atom::Nil, Atom::Number(Number::new(5, 1).unwrap())];
     let l2 = l1.prepend(id!("+"));
 
-    assert_eq!(l2.head, Some(id!("+")));
+    let (head, tail) = l2.split().unwrap();
+
+    assert_eq!(head, id!("+"));
     assert_eq!(
-      l2.tail,
-      vec![Atom::Nil, Atom::Number(Number::new(5, 1).unwrap())]
+      tail,
+      list![Atom::Nil, Atom::Number(Number::new(5, 1).unwrap())]
     );
   }
 
@@ -147,7 +127,9 @@ mod tests {
     let l1 = list![Atom::Nil];
     let l2 = l1.append(Atom::Number(Number::new(7, 1).unwrap()));
 
-    assert_eq!(l2.head, Some(Atom::Nil));
-    assert_eq!(l2.tail, vec![Atom::Number(Number::new(7, 1).unwrap())]);
+    let (head, tail) = l2.split().unwrap();
+
+    assert_eq!(head, Atom::Nil);
+    assert_eq!(tail, list![Atom::Number(Number::new(7, 1).unwrap())]);
   }
 }

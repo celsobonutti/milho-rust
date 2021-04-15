@@ -1,12 +1,11 @@
-use super::{Boolean, BuiltIn, Function, List, Number, Vector};
+use super::{Boolean, BuiltIn, Function, List, Number};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Atom {
-  List(Box<List>),
+  List(List),
   Number(Number),
   Bool(Boolean),
   Error(String),
-  Vector(Vector),
   Identifier(String),
   Function(Box<Function>),
   Macro(Box<Function>),
@@ -85,22 +84,6 @@ impl Atom {
     }
   }
 
-  pub fn is_vector(&self) -> bool {
-    if let Atom::Vector(_) = self {
-      true
-    } else {
-      false
-    }
-  }
-
-  pub fn unwrap_vector(self) -> Vec<Atom> {
-    if let Atom::Vector(v) = self {
-      v
-    } else {
-      panic!("Trying to unwrap a vector from a non-vector atom");
-    }
-  }
-
   pub fn is_identifier(&self) -> bool {
     if let Atom::Identifier(_) = self {
       true
@@ -114,6 +97,14 @@ impl Atom {
       id
     } else {
       panic!("Trying to unwrap an id from a non-identifier atom");
+    }
+  }
+
+  pub fn unwrap_list(self) -> List {
+    if let Atom::List(l) = self {
+      l
+    } else {
+      panic!("Trying to unwrap a list from a non-list atom");
     }
   }
 

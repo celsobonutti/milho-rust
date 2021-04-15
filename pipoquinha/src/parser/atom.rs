@@ -2,7 +2,7 @@ extern crate pom;
 
 use pom::parser::*;
 
-use super::{boolean, built_in, identifier, list as list_p, number, string, vector};
+use super::{boolean, built_in, identifier, list as list_p, number, string};
 use crate::list;
 use crate::types::{Atom, BuiltIn, List};
 
@@ -18,13 +18,12 @@ pub fn parser<'a>() -> Parser<'a, u8, Atom> {
       | boolean::parser().map(Atom::Bool)
       | string::parser().map(Atom::Str)
       | built_in::parser().map(Atom::BuiltIn)
-      | call(list_p::parser).map(|l| Atom::List(Box::new(l)))
-      | call(vector::parser).map(Atom::Vector)
+      | call(list_p::parser).map(Atom::List)
       | call(identifier::parser).map(Atom::Identifier)))
   .name("Atom")
   .map(|(is_quoted, atom)| {
     if is_quoted.is_some() {
-      Atom::List(Box::new(list![Atom::BuiltIn(BuiltIn::Quote), atom]))
+      Atom::List(list![Atom::BuiltIn(BuiltIn::Quote), atom])
     } else {
       atom
     }

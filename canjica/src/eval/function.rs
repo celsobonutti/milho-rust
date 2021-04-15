@@ -74,12 +74,12 @@ pub fn execute(
 
       added_vars.push(key.clone());
 
-      let value = Atom::List(Box::new(List::from_vec(
+      let value = Atom::List(List::from_vec(
         arguments
           .into_iter()
           .map(|atom| eval(atom, namespace_variables.clone()))
           .collect(),
-      )));
+      ));
 
       let mut mutable_ref = namespace_variables.borrow_mut();
 
@@ -150,7 +150,7 @@ pub fn execute_macro(
 
       added_vars.push(key.clone());
 
-      let value = Atom::List(Box::new(List::from_vec(arguments)));
+      let value = Atom::List(List::from_vec(arguments));
 
       let mut mutable_ref = namespace_variables.borrow_mut();
 

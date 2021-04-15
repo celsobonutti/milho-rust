@@ -32,7 +32,7 @@ pub fn loop_function(mut parameters: Vec<Atom>, namespace_variables: NamespaceTa
   if parameters.len() == 1 {
     if let Atom::List(l) = parameters.remove(0) {
       loop {
-        execute(*l.clone(), namespace_variables.clone());
+        execute(l.clone(), namespace_variables.clone());
       }
       Atom::Nil
     } else {
