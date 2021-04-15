@@ -1,12 +1,12 @@
 use std::io;
 
-use crate::NamespaceTable;
+use crate::{eval, NamespaceTable};
 use pipoquinha::parser::atom;
 use pipoquinha::types::Atom;
 
-pub fn print(arguments: Vec<Atom>, _namespace_variables: NamespaceTable) -> Atom {
+pub fn print(arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   for (index, item) in arguments.into_iter().enumerate() {
-    match item {
+    match eval(item, namespace_variables.clone()) {
       Atom::Str(string) => {
         if index == 0 {
           print!("{}", string);

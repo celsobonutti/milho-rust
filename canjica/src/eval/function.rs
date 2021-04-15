@@ -70,8 +70,6 @@ pub fn execute(
           .insert_local_var(&key, value);
       }
 
-      let mut mutable_ref = namespace_variables.borrow_mut();
-
       let key = function.parameters.remove(0);
 
       added_vars.push(key.clone());
@@ -82,6 +80,8 @@ pub fn execute(
           .map(|atom| eval(atom, namespace_variables.clone()))
           .collect(),
       )));
+
+      let mut mutable_ref = namespace_variables.borrow_mut();
 
       mutable_ref.insert_local_var(&key, value);
 
@@ -146,13 +146,13 @@ pub fn execute_macro(
           .insert_local_var(&key, value);
       }
 
-      let mut mutable_ref = namespace_variables.borrow_mut();
-
       let key = function.parameters.remove(0);
 
       added_vars.push(key.clone());
 
       let value = Atom::List(Box::new(List::from_vec(arguments)));
+
+      let mut mutable_ref = namespace_variables.borrow_mut();
 
       mutable_ref.insert_local_var(&key, value);
 

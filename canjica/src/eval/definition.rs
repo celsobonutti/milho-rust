@@ -82,9 +82,13 @@ pub fn function(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -
       if function.is_error() {
         function
       } else {
-        namespace_variables
-          .borrow_mut()
-          .insert_global_var(&name, function);
+        let namespace_vars = namespace_variables.clone();
+
+        let mut mutable_namespace = namespace_vars.borrow_mut();
+
+        mutable_namespace.insert_global_var(&name, function);
+
+        drop(mutable_namespace);
 
         Identifier(name)
       }
@@ -206,9 +210,13 @@ pub fn macro_d(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) ->
       if function.is_error() {
         function
       } else {
-        namespace_variables
-          .borrow_mut()
-          .insert_global_var(&name, function);
+        let namespace_vars = namespace_variables.clone();
+
+        let mut mutable_namespace = namespace_vars.borrow_mut();
+
+        mutable_namespace.insert_global_var(&name, function);
+
+        drop(mutable_namespace);
 
         Identifier(name)
       }

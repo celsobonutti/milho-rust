@@ -21,10 +21,8 @@ pub fn execute(mut list: List, namespace_variables: NamespaceTable) -> Atom {
       Read => io::read(list.tail),
       Eval => {
         if list.tail.len() == 1 {
-          eval(
-            eval(list.tail.remove(0), namespace_variables.clone()),
-            namespace_variables,
-          )
+          let value = eval(list.tail.remove(0), namespace_variables.clone());
+          eval(value, namespace_variables)
         } else {
           Atom::Error(format!(
             "Wrong number of arguments for 'eval': was expecting 1, found {}",
