@@ -1,13 +1,13 @@
-(defn prepend-tail [ atom list ]
-  ( let 
-    [ head (car list) tail (cdr list) ]
+(defn prepend-tail (atom list)
+  (let 
+    (head (car list) tail (cdr list))
     (cons head (cons atom tail))
   )
 )
 
-(defn append-list [list1 list2]
+(defn append-list (list1 list2)
   (let 
-    [hd (car list1) tl (cdr list1)]
+    (hd (car list1) tl (cdr list1))
     (if (= hd Nil)
       list2
       (cons hd (append-list tl list2))
@@ -15,13 +15,14 @@
   )
 )
 
-(defn list [+rest]
+(defn list (+rest)
   rest
 )
 
-(defn map [ f l ]
+(defn map (f l)
   (if (= l '())
     '()
     (cons ((eval f) (car l)) (map (eval f) (cdr l)))
   )
 )
+

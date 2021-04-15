@@ -1,25 +1,25 @@
-(defn pow [ x y ]
+(defn pow (x y)
   (eval (cons * (make-list y x)))
 )
 
-(defn rem [ x y ]
+(defn rem (x y)
   (- x (* (/ x y) y))
 )
 
-(defn even [ x ]
+(defn even (x)
   (= 0 (rem x 2)) 
 )
 
-(defn odd [ x ]
+(defn odd (x)
   (not (even x))
 )
 
 (defn -
-  ([x] (negate x))
-  ([x +rest] (eval (append-list '(+ x) (map negate rest))))
+  ((x) (negate x))
+  ((x +rest) (eval (append-list '(+ x) (map negate rest))))
 )
 
 (defn /
-  ([x] (invert x))
-  ([x +rest] (eval (append-list '(* x) (map invert rest))))
+  ((x) (invert x))
+  ((x +rest) (eval (append-list '(* x) (map invert rest))))
 )

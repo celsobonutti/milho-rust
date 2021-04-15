@@ -1,4 +1,4 @@
-(defn println [+rest]
+(defn println (+rest)
   (do
     (eval (cons print rest))
     (print "\n")

@@ -1,6 +1,6 @@
 use std::{env, thread};
 
-use canjica::{Table, NamespaceTable};
+use canjica::{NamespaceTable, Table};
 use pipoquinha::parser::file;
 mod file_interpreter;
 mod repl;
@@ -18,7 +18,6 @@ fn initialize_var_table() -> NamespaceTable {
     "std/basic.milho",
     "std/math.milho",
     "std/io.milho",
-    "std/vector.milho",
     "std/list.milho",
     "std/comparison.milho"
   );
