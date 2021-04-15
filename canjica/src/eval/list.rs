@@ -155,7 +155,6 @@ fn cdr(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -> Atom {
   if arguments.len() == 1 {
     match eval(arguments.remove(0), namespace_variables) {
       Atom::List(l) => match l.split() {
-        Some((_, tail)) if tail.is_empty() => Atom::Nil,
         Some((_, tail)) => Atom::List(tail),
         _ => Atom::Nil,
       },
