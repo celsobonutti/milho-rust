@@ -51,7 +51,7 @@ impl Display for Atom {
         write!(f, "{}", text)
       }
       Str(string) => write!(f, "\"{}\"", string),
-      BuiltIn(string) => write!(f, "built-in{}", string),
+      BuiltIn(built_in) => write!(f, "BuiltIn.{:?}", built_in),
       Nil => write!(f, "Nil"),
     }
   }

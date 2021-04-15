@@ -1,4 +1,4 @@
-use pipoquinha::types::{Atom, List, Number};
+use pipoquinha::types::{Atom, BuiltIn::*, List, Number};
 
 use super::{arithmetic, boolean, comparison, definition, function, io, special, vector};
 use crate::{eval, NamespaceTable};
@@ -6,20 +6,20 @@ use crate::{eval, NamespaceTable};
 pub fn execute(mut list: List, namespace_variables: NamespaceTable) -> Atom {
   let fun_name = list.head;
   match fun_name {
-    Some(Atom::BuiltIn(x)) => match x.as_str() {
-      ".__add__" => arithmetic::add(list.tail, namespace_variables),
-      ".__mul__" => arithmetic::multiply(list.tail, namespace_variables),
-      ".__eq__" => comparison::eq(list.tail, namespace_variables),
-      ".__negate__" => arithmetic::negate(list.tail, namespace_variables),
-      ".__invert__" => arithmetic::invert(list.tail, namespace_variables),
-      ".__def__" => definition::variable(list.tail, namespace_variables),
-      ".__defn__" => definition::function(list.tail, namespace_variables),
-      ".__defmacro__" => definition::macro_d(list.tail, namespace_variables),
-      ".__fn__" => definition::anonymous_function(list.tail, namespace_variables),
-      ".__let__" => definition::local_variables(list.tail, namespace_variables),
-      ".__if__" => special::if_fun(list.tail, namespace_variables),
-      ".__read__" => io::read(list.tail),
-      ".__eval__" => {
+    Some(Atom::BuiltIn(x)) => match x {
+      Add => arithmetic::add(list.tail, namespace_variables),
+      Mul => arithmetic::multiply(list.tail, namespace_variables),
+      Eql => comparison::eq(list.tail, namespace_variables),
+      Negate => arithmetic::negate(list.tail, namespace_variables),
+      Invert => arithmetic::invert(list.tail, namespace_variables),
+      Def => definition::variable(list.tail, namespace_variables),
+      Defn => definition::function(list.tail, namespace_variables),
+      Defmacro => definition::macro_d(list.tail, namespace_variables),
+      Fun => definition::anonymous_function(list.tail, namespace_variables),
+      Let => definition::local_variables(list.tail, namespace_variables),
+      If => special::if_fun(list.tail, namespace_variables),
+      Read => io::read(list.tail),
+      Eval => {
         if list.tail.len() == 1 {
           eval(
             eval(list.tail.remove(0), namespace_variables.clone()),
@@ -32,18 +32,16 @@ pub fn execute(mut list: List, namespace_variables: NamespaceTable) -> Atom {
           ))
         }
       }
-      ".__print__" => io::print(list.tail, namespace_variables),
-      ".__loop__" => special::loop_function(list.tail, namespace_variables),
-      ".__do__" => special::do_function(list.tail, namespace_variables),
-      ".__not__" => boolean::not(list.tail, namespace_variables),
-      ".__head__" => vector::head(list.tail, namespace_variables),
-      ".__tail__" => vector::tail(list.tail, namespace_variables),
-      ".__concat__" => vector::concatenate(list.tail, namespace_variables),
-      ".__cons__" => cons(list.tail, namespace_variables),
-      ".__make-list__" => make_list(list.tail, namespace_variables),
-      ".__car__" => car(list.tail, namespace_variables),
-      ".__cdr__" => cdr(list.tail, namespace_variables),
-      ".__quote__" => {
+      Print => io::print(list.tail, namespace_variables),
+      Loop => special::loop_function(list.tail, namespace_variables),
+      Do => special::do_function(list.tail, namespace_variables),
+      Not => boolean::not(list.tail, namespace_variables),
+      Concat => vector::concatenate(list.tail, namespace_variables),
+      Cons => cons(list.tail, namespace_variables),
+      MakeList => make_list(list.tail, namespace_variables),
+      Car => car(list.tail, namespace_variables),
+      Cdr => cdr(list.tail, namespace_variables),
+      Quote => {
         if list.tail.len() == 1 {
           list.tail.remove(0)
         } else {
@@ -53,7 +51,6 @@ pub fn execute(mut list: List, namespace_variables: NamespaceTable) -> Atom {
           ))
         }
       }
-      n => Atom::Error(format!("Undefined built-in: {}", n)),
     },
     Some(Atom::Identifier(name)) => {
       let item = eval(

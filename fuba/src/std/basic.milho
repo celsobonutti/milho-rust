@@ -15,8 +15,6 @@
 (def loop .__loop__)
 (def do .__do__)
 (def not .__not__)
-(def head .__head__)
-(def tail .__tail__)
 (def concat .__concat__)
 (def cons .__cons__)
 (def make-list .__make-list__)

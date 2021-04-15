@@ -4,7 +4,7 @@ use pom::parser::*;
 
 use super::{boolean, built_in, identifier, list as list_p, number, string, vector};
 use crate::list;
-use crate::types::{Atom, List};
+use crate::types::{Atom, BuiltIn, List};
 
 pub fn parser<'a>() -> Parser<'a, u8, Atom> {
   (sym(b'\'').opt()
@@ -24,10 +24,7 @@ pub fn parser<'a>() -> Parser<'a, u8, Atom> {
   .name("Atom")
   .map(|(is_quoted, atom)| {
     if is_quoted.is_some() {
-      Atom::List(Box::new(list![
-        Atom::BuiltIn(".__quote__".to_string()),
-        atom
-      ]))
+      Atom::List(Box::new(list![Atom::BuiltIn(BuiltIn::Quote), atom]))
     } else {
       atom
     }

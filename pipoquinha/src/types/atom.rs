@@ -1,4 +1,4 @@
-use super::{Boolean, Function, List, Number, Vector};
+use super::{Boolean, BuiltIn, Function, List, Number, Vector};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Atom {
@@ -12,7 +12,7 @@ pub enum Atom {
   Macro(Box<Function>),
   MultiArityFn(Box<Vec<Function>>),
   Str(String),
-  BuiltIn(String),
+  BuiltIn(BuiltIn),
   Nil,
 }
 

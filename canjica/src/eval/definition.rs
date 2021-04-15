@@ -82,13 +82,9 @@ pub fn function(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) -
       if function.is_error() {
         function
       } else {
-        let namespace_vars = namespace_variables.clone();
-
-        let mut mutable_namespace = namespace_vars.borrow_mut();
-
-        mutable_namespace.insert_global_var(&name, function);
-
-        drop(mutable_namespace);
+        namespace_variables
+          .borrow_mut()
+          .insert_global_var(&name, function);
 
         Identifier(name)
       }
@@ -154,10 +150,10 @@ pub fn local_variables(mut arguments: Vec<Atom>, namespace_variables: NamespaceT
       while let Some([key, value]) = pairs.next() {
         if let Identifier(name) = key {
           inserted_vars.push(name);
-
+          let value = eval(value.clone(), namespace_variables.clone());
           namespace_variables
             .borrow_mut()
-            .insert_local_var(name, eval(value.clone(), namespace_variables.clone()));
+            .insert_local_var(name, value);
         } else {
           inserted_vars
             .iter()
@@ -210,13 +206,9 @@ pub fn macro_d(mut arguments: Vec<Atom>, namespace_variables: NamespaceTable) ->
       if function.is_error() {
         function
       } else {
-        let namespace_vars = namespace_variables.clone();
-
-        let mut mutable_namespace = namespace_vars.borrow_mut();
-
-        mutable_namespace.insert_global_var(&name, function);
-
-        drop(mutable_namespace);
+        namespace_variables
+          .borrow_mut()
+          .insert_global_var(&name, function);
 
         Identifier(name)
       }
