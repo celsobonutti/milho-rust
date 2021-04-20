@@ -22,4 +22,5 @@ pub enum BuiltIn {
   Car,
   Cdr,
   Quote,
+  Gt,
 }

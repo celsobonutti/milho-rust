@@ -4,6 +4,7 @@
 (def + .__add__)
 (def * .__mul__)
 (def = .__eq__)
+(def > .__gt__)
 (def negate .__negate__)
 (def invert .__invert__)
 (def fn .__fn__)

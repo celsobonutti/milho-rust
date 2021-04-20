@@ -1,3 +1,4 @@
+use std::cmp::{Ordering, PartialOrd};
 use std::mem::swap;
 use std::ops::{Add, Div, Mul, Neg};
 use std::{
@@ -135,6 +136,16 @@ impl Display for Number {
   }
 }
 
+impl PartialOrd for Number {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    let Number(first_numerator, first_denominator) = self;
+    let Number(second_numerator, second_denominator) = other;
+    let first_value = *first_numerator as f64 / *first_denominator as f64;
+    let second_value = *second_numerator as f64 / *second_denominator as f64;
+
+    first_value.partial_cmp(&second_value)
+  }
+}
 #[cfg(test)]
 mod tests {
   use super::*;

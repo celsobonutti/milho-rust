@@ -2,7 +2,7 @@ use pom::parser::*;
 
 use crate::types::BuiltIn;
 
-pub const BUILT_INS: [&[u8]; 24] = [
+pub const BUILT_INS: [&[u8]; 25] = [
   b".__add__",
   b".__mul__",
   b".__negate__",
@@ -27,6 +27,7 @@ pub const BUILT_INS: [&[u8]; 24] = [
   b".__car__",
   b".__cdr__",
   b".__quote__",
+  b".__gt__",
 ];
 
 pub fn parser<'a>() -> Parser<'a, u8, BuiltIn> {
@@ -52,4 +53,5 @@ pub fn parser<'a>() -> Parser<'a, u8, BuiltIn> {
     | seq(b".__car__").map(|_| BuiltIn::Car)
     | seq(b".__cdr__").map(|_| BuiltIn::Cdr)
     | seq(b".__quote__").map(|_| BuiltIn::Quote)
+    | seq(b".__gt__").map(|_| BuiltIn::Gt)
 }

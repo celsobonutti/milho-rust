@@ -48,6 +48,7 @@ pub fn execute(list: List, namespace_variables: NamespaceTable) -> Atom {
             ))
           }
         }
+        Gt => comparison::gt(tail.as_vec(), namespace_variables),
       },
       Atom::Identifier(name) => {
         let item = eval(
@@ -79,7 +80,7 @@ pub fn execute(list: List, namespace_variables: NamespaceTable) -> Atom {
         execute(new_list, namespace_variables)
       }
       e @ Atom::Error(_) => e,
-      value => Atom::Error(format!("Cannot invoke {}, as it's not a function", value)),
+      value => Atom::Error(format!("Cannot invoke {}, as it's not a function", value))
     }
   } else {
     Atom::Nil

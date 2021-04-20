@@ -139,4 +139,26 @@ impl Atom {
   pub fn make_string(x: &str) -> Self {
     Self::Str(x.to_string())
   }
+
+  pub fn is_number(&self) -> bool {
+    if let Atom::Number(_) = self {
+      true
+    } else {
+      false
+    }
+  }
+
+  pub fn type_of(&self) -> &str {
+    match self {
+      Atom::Bool(_) => "boolean",
+      Atom::Number(_) => "number",
+      Atom::Identifier(_) => "identifier",
+      Atom::List(_) => "list",
+      Atom::Function(_) | Atom::MultiArityFn(_) | Atom::BuiltIn(_) => "function",
+      Atom::Error(_) => "error",
+      Atom::Macro(_) => "macro",
+      Atom::Str(_) => "string",
+      Atom::Nil => "nil",
+    }
+  }
 }
