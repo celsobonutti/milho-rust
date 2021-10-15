@@ -10,6 +10,9 @@
   )
 )
 
-(defn test ()
-  (when True (println "Test") (println "This is a test") ("Oops"))
-)
+(defn test (name expected result)
+	(if (= expected result)
+		(println "PASS:" name)
+		(do
+			(println "FAIL:" name)
+			(println "  └─ Value {" (str result) "} doesn't equal expected result {" (str expected) "}."))))
